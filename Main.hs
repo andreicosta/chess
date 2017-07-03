@@ -1,5 +1,4 @@
-import Data.Maybe  (isNothing,mapMaybe)
-import Data.Matrix (Matrix,matrix,getElem,setElem)
+import Data.Matrix
 
 import Actions
 import Init
