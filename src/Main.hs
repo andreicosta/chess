@@ -1,3 +1,5 @@
+module Main where
+
 import Data.Maybe
 import Data.Matrix
 import System.Console.ANSI
