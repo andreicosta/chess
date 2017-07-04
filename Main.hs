@@ -10,22 +10,21 @@ import Structure
 main = do
   setTitle "doubtless chess"
   
-  let initPlace = (7,8)
-      --playablePieces = filter (\p -> player p == Structure.White) (mapMaybe piece (toList board))
-      movements = matrix 8 8 (getMoves board)
-  --print (getMoves board initPlace)
-  --putStrLn (printableMatrix board "\x1b[32m" [initPlace] (getMoves board initPlace))
+  let initBoard = matrix 8 8 starting
+      initPlace = (7,8)
   
-  loop board initPlace
+  loop initBoard initPlace
   
-  return 0
+  return ()
 
 loop m place@(x,y) = do
-  putStrLn (printableMatrix board "\x1b[32m" [place] (getMoves m place))
+  print ("loop: q ENTER w s a d")
+  
+  putStrLn (printableMatrix m "\x1b[32m" [place] "\x1b[31m" (getMoves m place))
   
   l <- getLine
   
-  print l
+  print ("loop: " ++ l)
   
   let setLeft = if y == 1 then 1 else y-1
   let setRight = if y == 8 then 8 else y+1
@@ -38,73 +37,28 @@ loop m place@(x,y) = do
     "d" -> loop m (x,setRight)
     "w" -> loop m (setUp,y)
     "s" -> loop m (setDown,y)
+    "" -> selectPieceLoop m place (place:(getMoves m place))
     _ -> loop m place
   
   return ()
-  
-getMoves m (x,y) = if isNothing (piece elem) then [] else allMoves m (x,y)
-  where
-    elem = getElem x y m
-    (Just whatIsThere) = piece elem
-    
 
-mainOld = do
-  setTitle "doubtless chess"
+selectPieceLoop m place moves = do
+  print ("selectPieceLoop: q \ESC ENTER w s")
   
-  getChar
-  putStrLn $ "\x1b[32m"
-  clearScreen
-  print board
+  let actual@(x,y) = head moves
   
-  getChar
-  clearScreen
-  print board2
-  putStrLn $ "\x1b[37m"
+  putStrLn (printableMatrix m "\x1b[32m" [actual] "\x1b[31m" (getMoves m place))
   
-  getChar
-  clearScreen
-  print board3
+  l <- getLine
   
-  getChar
-  clearScreen
-  print board4
+  print ("selectPieceLoop: " ++ l)
   
-  getChar
-  clearScreen
-  print board5
+  case l of
+    "q" -> return ()
+    "\ESC" -> loop m actual
+    "" -> if actual == place then selectPieceLoop m place moves else loop (move m place actual) actual
+    "s" -> selectPieceLoop m place (tail moves ++ [actual])
+    "w" -> selectPieceLoop m place (last moves : init moves)
+    _ -> selectPieceLoop m place moves
   
-  getChar
-  clearScreen
-  print board6
-  
-  getChar
-  clearScreen
-  print board7
-  
-  getChar
-  clearScreen
-  print board8
-  
-  getChar
-  clearScreen
-  print board9
-  
-  setSGR [Reset]
-  return 0
-
-board = matrix 8 8 starting
-board2 = walking board (2,5)
-board3 = walking board2 (1,2)
-board4 = walking board3 (2,2)
-board5 = walking board4 (4,2)
-board6 = walking board5 (1,1)
-board7 = walking board6 (1,3)
-board8 = walking board7 (1,5)
-board9 = walking board8 (3,5)
-
-walking :: Matrix Place -> (Int,Int) -> Matrix Place
-walking m pos@(i,j) = move m pos (last movs)
-  where
-    elem = getElem i j m
-    (Just whatIsThere) = piece elem
-    movs = allMoves m pos
+  return ()

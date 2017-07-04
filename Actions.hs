@@ -1,4 +1,4 @@
-module Actions where
+module Actions (getMoves,move) where
 
 import Data.Maybe
 import Data.Matrix
@@ -36,3 +36,8 @@ allMoves m pos@(i,j) = filter (checkMove m whatIsThere pos) allBoardMoves
     firstPawnMove = typ whatIsThere == Pawn && ((i == 2 && player whatIsThere == Black) || (i == 7 && player whatIsThere == White))
     all = moves whatIsThere ++ (if firstPawnMove then map (\(x,y) -> (x*2,y)) (moves whatIsThere) else [])
     allBoardMoves = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (x+i,y+j) else Nothing) all
+
+getMoves m (x,y) = if isNothing (piece elem) then [] else allMoves m (x,y)
+  where
+    elem = getElem x y m
+    (Just whatIsThere) = piece elem
