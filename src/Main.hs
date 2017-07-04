@@ -9,20 +9,24 @@ import Actions
 import Init
 import Structure
 
+colorPlace = "\x1b[32m"
+colorMove = "\x1b[31m"
+colorAttack = "\x1b[31m"
+
 main = do
   setTitle "doubtless chess"
   
-  let initBoard = matrix 8 8 starting
-      initPlace = (7,8)
+  let initBoard = matrix 8 8 starting--Test
+      initPlace = (3,5)
   
   loop initBoard initPlace
   
   return ()
 
 loop m place@(x,y) = do
-  print ("loop: q ENTER w s a d")
+  print "loop: q ENTER w s a d"
   
-  putStrLn (printableMatrix m "\x1b[32m" [place] "\x1b[31m" (getMoves m place))
+  putStrLn (printableMatrix m colorPlace [place] colorMove (getMoves m place) colorAttack (getAttacks m place))
   
   l <- getLine
   
@@ -39,17 +43,17 @@ loop m place@(x,y) = do
     "d" -> loop m (x,setRight)
     "w" -> loop m (setUp,y)
     "s" -> loop m (setDown,y)
-    "" -> selectPieceLoop m place (place:(getMoves m place))
+    "" -> if isNothing (piece (getElem x y m)) then loop m place else selectPieceLoop m place (place:(getMoves m place ++ getAttacks m place))
     _ -> loop m place
   
   return ()
 
 selectPieceLoop m place moves = do
-  print ("selectPieceLoop: q \ESC ENTER w s")
+  print "selectPieceLoop: q \ESC ENTER w s"
   
   let actual@(x,y) = head moves
   
-  putStrLn (printableMatrix m "\x1b[32m" [actual] "\x1b[31m" (getMoves m place))
+  putStrLn (printableMatrix m colorPlace [actual] colorMove (getMoves m place) colorAttack (getAttacks m place))
   
   l <- getLine
   

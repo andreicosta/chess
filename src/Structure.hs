@@ -42,10 +42,15 @@ instance Show Place where
   show (Place Nothing) = "  "
   
 -- Print Matrix
-printableMatrix m colorPiece piecePoints colorPoints movePoints =
+printableMatrix :: Matrix Place -> String -> [Pos] -> String -> [Pos] -> String -> [Pos] -> String
+printableMatrix m colorPiece piecePoints colorPoints movePoints colorAttack attackPoints =
   concatMap (\x -> concatMap (\y -> print x y ++ " ") [1..8] ++ "\n") [1..8]
   where
     colorWhite = "\x1b[39m"
-    print x y = if (x,y) `elem` piecePoints then colorPiece ++ printPiece x y ++ colorWhite else printElem x y
-    printPiece x y = if isNothing (piece (getElem x y m)) then "()" else show (getElem x y m)
-    printElem x y = if (x,y) `elem` movePoints then colorPoints ++ "--" ++ colorWhite else show (getElem x y m)
+    printPiece x y = if isNothing (piece (getElem x y m)) then colorPiece ++ "()" ++ colorWhite else printColorPiece x y
+    --to diff attackPieces: printColorPiece x y = if (x,y) `elem` attackPoints then colorPiece ++ show (getElem x y m) ++ colorWhite else colorPiece ++ show (getElem x y m) ++ colorWhite
+    printColorPiece x y = colorPiece ++ show (getElem x y m) ++ colorWhite
+    
+    print x y = if (x,y) `elem` piecePoints then printPiece x y else printMove x y
+    printMove x y = if (x,y) `elem` movePoints then colorPoints ++ "--" ++ colorWhite else printAttack x y
+    printAttack x y = if (x,y) `elem` attackPoints then colorAttack ++ show (getElem x y m) ++ colorWhite else show (getElem x y m)

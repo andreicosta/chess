@@ -24,6 +24,15 @@ starting (7,_) = Place (Just (Piece Pawn White 18))
 
 starting (_,_) = Place Nothing
 
+-- Alternative starting boards
+
+startingTest (1,1) = Place (Just (Piece Rook White 18))
+startingTest (4,4) = Place (Just (Piece Rook White 17))
+startingTest (2,4) = Place (Just (Piece Pawn White 15))
+startingTest (4,6) = Place (Just (Piece Queen Black 16))
+startingTest (3,5) = Place (Just (Piece Pawn Black 1))
+startingTest (_,_) = Place Nothing
+
 -- Fixed (board independently) Configurations
 
 -- it's a simplification ...
