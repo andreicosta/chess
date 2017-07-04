@@ -7,19 +7,19 @@ import Init
 import Structure
 
 checkMove :: Matrix Place -> Piece -> (Int,Int) -> (Int,Int) -> Bool
-checkMove m (Piece Pawn _) _ (i,j) = isNothing (piece (getElem i j m))
-checkMove m (Piece Knight _) _ (i,j) = isNothing (piece (getElem i j m))
-checkMove m (Piece King _) _ (i,j) = isNothing (piece (getElem i j m))
-checkMove m (Piece Rook _) (ai,aj) (ni,nj) =
+checkMove m (Piece Pawn _ _) _ (i,j) = isNothing (piece (getElem i j m))
+checkMove m (Piece Knight _ _) _ (i,j) = isNothing (piece (getElem i j m))
+checkMove m (Piece King _ _) _ (i,j) = isNothing (piece (getElem i j m))
+checkMove m (Piece Rook _ _) (ai,aj) (ni,nj) =
   all (\(x,y) -> isNothing (piece (getElem x y m)))
     [(x,y) | x <- [(min ai ni)..(max ai ni)], y <- [(min aj nj)..(max aj nj)], (x,y) /= (ai,aj)]
-checkMove m (Piece Bishop _) (ai,aj) (ni,nj) =
+checkMove m (Piece Bishop _ _) (ai,aj) (ni,nj) =
   all (\(x,y) -> isNothing (piece (getElem x y m)))
     [(x,y) | x <- [(min ai ni)..(max ai ni)], y <- [(min aj nj)..(max aj nj)], abs (x-ai) == abs (y-aj), (x,y) /= (ai,aj)]
-checkMove m (Piece Queen p) (ai,aj) (ni,nj) =
+checkMove m (Piece Queen p _) (ai,aj) (ni,nj) =
   if ai-ni == 0 || aj-nj == 0
-    then checkMove m (Piece Rook p) (ai,aj) (ni,nj)
-    else checkMove m (Piece Bishop p) (ai,aj) (ni,nj)
+    then checkMove m (Piece Rook p undefined) (ai,aj) (ni,nj)
+    else checkMove m (Piece Bishop p undefined) (ai,aj) (ni,nj)
 
 move :: Matrix Place -> (Int,Int) -> (Int,Int) -> Matrix Place
 move m act@(ai,aj) new@(ni,nj) = m3

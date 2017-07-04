@@ -1,5 +1,8 @@
 module Structure where
 
+import Data.Maybe
+import Data.Matrix
+
 type Pos = (Int,Int)
 
 data Player = White | Black deriving(Eq)
@@ -24,10 +27,11 @@ instance Show Type where
 data Piece = Piece
   { typ :: Type
   , player :: Player
+  , id :: Int
   } deriving(Eq)
 
 instance Show Piece where
-  show (Piece t p) = show t ++ show p
+  show (Piece t p _) = show t ++ show p
 
 data Place = Place
   { piece :: Maybe Piece
@@ -36,3 +40,12 @@ data Place = Place
 instance Show Place where
   show (Place (Just piece)) = show piece
   show (Place Nothing) = "  "
+  
+-- Print Matrix
+printableMatrix m color piecePoints movePoints =
+  concatMap (\x -> (concatMap (\y -> print x y ++ " ") [1..8]) ++ "\n") [1..8]
+  where
+    colorWhite = "\x1b[39m"
+    print x y = if (x,y) `elem` piecePoints then color ++ (printPiece x y) ++ colorWhite else printElem x y
+    printPiece x y = if isNothing (piece (getElem x y m)) then "()" else show (getElem x y m)
+    printElem x y = if (x,y) `elem` movePoints then color ++ "--" ++ colorWhite else show (getElem x y m)

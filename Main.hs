@@ -1,11 +1,95 @@
+import Data.Maybe
 import Data.Matrix
+import System.Console.ANSI
+import System.IO
 
 import Actions
 import Init
 import Structure
 
 main = do
+  setTitle "doubtless chess"
+  
+  let initPlace = (7,8)
+      --playablePieces = filter (\p -> player p == Structure.White) (mapMaybe piece (toList board))
+      movements = matrix 8 8 (getMoves board)
+  --print (getMoves board initPlace)
+  --putStrLn (printableMatrix board "\x1b[32m" [initPlace] (getMoves board initPlace))
+  
+  loop board initPlace
+  
+  return 0
+
+loop m place@(x,y) = do
+  putStrLn (printableMatrix board "\x1b[32m" [place] (getMoves m place))
+  
+  l <- getLine
+  
+  print l
+  
+  let setLeft = if y == 1 then 1 else y-1
+  let setRight = if y == 8 then 8 else y+1
+  let setUp = if x == 1 then 1 else x-1
+  let setDown = if x == 8 then 8 else x+1
+  
+  case l of
+    "q" -> return ()
+    "a" -> loop m (x,setLeft)
+    "d" -> loop m (x,setRight)
+    "w" -> loop m (setUp,y)
+    "s" -> loop m (setDown,y)
+    _ -> loop m place
+  
+  return ()
+  
+getMoves m (x,y) = if isNothing (piece elem) then [] else allMoves m (x,y)
+  where
+    elem = getElem x y m
+    (Just whatIsThere) = piece elem
+    
+
+mainOld = do
+  setTitle "doubtless chess"
+  
+  getChar
+  putStrLn $ "\x1b[32m"
+  clearScreen
+  print board
+  
+  getChar
+  clearScreen
+  print board2
+  putStrLn $ "\x1b[37m"
+  
+  getChar
+  clearScreen
+  print board3
+  
+  getChar
+  clearScreen
+  print board4
+  
+  getChar
+  clearScreen
+  print board5
+  
+  getChar
+  clearScreen
+  print board6
+  
+  getChar
+  clearScreen
+  print board7
+  
+  getChar
+  clearScreen
+  print board8
+  
+  getChar
+  clearScreen
   print board9
+  
+  setSGR [Reset]
   return 0
 
 board = matrix 8 8 starting
