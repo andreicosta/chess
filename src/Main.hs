@@ -39,12 +39,7 @@ loop oldBoard p place@(x,y) = do
   
   print ("loop: " ++ l)
   
-  let setLeft = if y == 1 then 1 else y-1
-      setRight = if y == 8 then 8 else y+1
-      setUp = if x == 1 then 1 else x-1
-      setDown = if x == 8 then 8 else x+1
-  
-      (Just getPiece) = piece (getElem x y m)
+  let (Just getPiece) = piece (getElem x y m)
       notAvailable = isNothing (piece (getElem x y m)) || player getPiece /= p
       
       selectPiece =
@@ -54,10 +49,10 @@ loop oldBoard p place@(x,y) = do
   
   case l of
     "q" -> return ()
-    "a" -> loop m p (x,setLeft)
-    "d" -> loop m p (x,setRight)
-    "w" -> loop m p (setUp,y)
-    "s" -> loop m p (setDown,y)
+    "a" -> loop m p (x,setLeft y)
+    "d" -> loop m p (x,setRight y)
+    "w" -> loop m p (setUp x,y)
+    "s" -> loop m p (setDown x,y)
     "" -> selectPiece
     _ -> loop m p place
   
@@ -68,9 +63,8 @@ selectPieceLoop m p place moves = do
   print ("selectPieceLoop, player " ++ show p ++ " place " ++ show place ++ " movements " ++ show moves)
   print "commands: q \ESC ENTER w s"
   
-  let actual = head moves
-      nextMove = selectPieceLoop m p place (tail moves ++ [actual])
-      previousMove = selectPieceLoop m p place (last moves : init moves)
+  let actual@(x,y) = head moves
+      moveNear to = selectPieceLoop m p place (sortNearPos to moves)
       toMove =
         if actual == place
           then selectPieceLoop m p place moves
@@ -86,10 +80,15 @@ selectPieceLoop m p place moves = do
     "q" -> return ()
     "\ESC" -> loop m p actual
     "" -> toMove
-    "s" -> nextMove
-    "a" -> nextMove
-    "w" -> previousMove
-    "d" -> previousMove
+    "s" -> moveNear (x+1,y)
+    "a" -> moveNear (x,y-1)
+    "w" -> moveNear (x-1,y)
+    "d" -> moveNear (x,y+1)
     _ -> selectPieceLoop m p place moves
   
   return ()
+
+setLeft y = if y == 1 then 1 else y-1
+setRight y = if y == 8 then 8 else y+1
+setUp x = if x == 1 then 1 else x-1
+setDown x = if x == 8 then 8 else x+1

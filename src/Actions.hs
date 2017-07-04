@@ -5,8 +5,10 @@ module Actions
   , move
   , postMoveEffects
   , changePlayer
+  , sortNearPos
   ) where
 
+import Data.List
 import Data.Maybe
 import Data.Matrix
 
@@ -115,3 +117,10 @@ pawnOnFinal m = matrix 8 8 $ \(x,y) -> if isPawnOnFinal x y then Place (Just (up
 
 changePlayer :: Player -> Player
 changePlayer p = if p == White then Black else White
+
+-- interface, still not working
+sortNearPos :: Pos -> [Pos] -> [Pos]
+sortNearPos (x1,y1) l = nearest ++ [head l]
+  where
+    nearest = sortBy (\p1 p2 -> compare (dist p1) (dist p2)) (tail l)
+    dist (x2,y2) = ((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1))
