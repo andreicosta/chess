@@ -3,16 +3,19 @@ module Main where
 import Data.Maybe
 import Data.Matrix
 import System.Console.ANSI
-import System.IO
 
 import Actions
 import Init
 import Structure
 
+colorPlace :: String
 colorPlace = "\x1b[32m"
+colorMove :: String
 colorMove = "\x1b[31m"
+colorAttack :: String
 colorAttack = "\x1b[31m"
 
+main :: IO ()
 main = do
   setTitle "doubtless chess"
   
@@ -23,6 +26,7 @@ main = do
   
   return ()
 
+loop :: Matrix Place -> Pos -> IO ()
 loop m place@(x,y) = do
   print "loop: q ENTER w s a d"
   
@@ -48,10 +52,11 @@ loop m place@(x,y) = do
   
   return ()
 
+selectPieceLoop :: Matrix Place -> Pos -> [Pos] -> IO ()
 selectPieceLoop m place moves = do
   print "selectPieceLoop: q \ESC ENTER w s"
   
-  let actual@(x,y) = head moves
+  let actual = head moves
   
   putStrLn (printableMatrix m colorPlace [actual] colorMove (getMoves m place) colorAttack (getAttacks m place))
   

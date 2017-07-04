@@ -53,38 +53,37 @@ checkAttack m (Piece Queen p _) (ai,aj) (ni,nj) =
     then checkAttack m (Piece Rook p undefined) (ai,aj) (ni,nj)
     else checkAttack m (Piece Bishop p undefined) (ai,aj) (ni,nj)
 
-move :: Matrix Place -> (Int,Int) -> (Int,Int) -> Matrix Place
-move m act@(ai,aj) new@(ni,nj) = m3
+move :: Matrix Place -> Pos -> Pos -> Matrix Place
+move m act@(ai,aj) new = m3
   where
     elem = getElem ai aj m
     m2 = setElem (Place Nothing) act m
-    m3 = setElem elem (ni,nj) m2
+    m3 = setElem elem new m2
 
+attack :: Matrix Place -> Pos -> Pos -> Matrix Place
 attack = move
 
-allMoves :: Matrix Place -> (Int,Int) -> [(Int,Int)]
-allMoves m pos@(i,j) = filter (checkMove m whatIsThere pos) allBoardMoves
+allMoves :: Matrix Place -> Pos -> Piece -> [Pos]
+allMoves m pos@(i,j) whatIsThere = filter (checkMove m whatIsThere pos) allBoardMoves
   where
-    place = getElem i j m
-    (Just whatIsThere) = piece place
     firstPawnMove = typ whatIsThere == Pawn && ((i == 2 && player whatIsThere == Black) || (i == 7 && player whatIsThere == White))
     all = moves whatIsThere ++ (if firstPawnMove then map (\(x,y) -> (x*2,y)) (moves whatIsThere) else [])
     allBoardMoves = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (x+i,y+j) else Nothing) all
 
-allAttacks :: Matrix Place -> (Int,Int) -> [(Int,Int)]
-allAttacks m pos@(i,j) = filter (checkAttack m whatIsThere pos) allBoardMoves
+allAttacks :: Matrix Place -> Pos -> Piece -> [Pos]
+allAttacks m pos@(i,j) whatIsThere = filter (checkAttack m whatIsThere pos) allBoardAttacks
   where
-    place = getElem i j m
-    (Just whatIsThere) = piece place
     all = attacks whatIsThere
-    allBoardMoves = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (x+i,y+j) else Nothing) all
+    allBoardAttacks = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (x+i,y+j) else Nothing) all
 
-getMoves m (x,y) = if isNothing (piece elem) then [] else allMoves m (x,y)
+getMovements :: (Matrix Place -> Pos -> Piece -> [Pos]) -> Matrix Place -> Pos -> [Pos]
+getMovements f m (x,y) = if isNothing (piece place) then [] else f m (x,y) whatIsThere
   where
-    elem = getElem x y m
-    (Just whatIsThere) = piece elem
+    place = getElem x y m
+    (Just whatIsThere) = piece place
 
-getAttacks m (x,y) = if isNothing (piece elem) then [] else allAttacks m (x,y)
-  where
-    elem = getElem x y m
-    (Just whatIsThere) = piece elem
+getMoves :: Matrix Place -> Pos -> [Pos]
+getMoves = getMovements allMoves
+
+getAttacks :: Matrix Place -> Pos -> [Pos]
+getAttacks = getMovements allAttacks

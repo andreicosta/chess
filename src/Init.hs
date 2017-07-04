@@ -2,6 +2,7 @@ module Init where
 
 import Structure
 
+starting :: Pos -> Place
 starting (1,8) = Place (Just (Piece Rook Black 1))
 starting (1,1) = Place (Just (Piece Rook Black 2))
 starting (1,2) = Place (Just (Piece Knight Black 3))
@@ -26,6 +27,7 @@ starting (_,_) = Place Nothing
 
 -- Alternative starting boards
 
+startingTest :: Pos -> Place
 startingTest (1,1) = Place (Just (Piece Rook White 18))
 startingTest (4,4) = Place (Just (Piece Rook White 17))
 startingTest (2,4) = Place (Just (Piece Pawn White 15))
