@@ -22,13 +22,16 @@ main = do
   let initBoard = matrix 8 8 starting--Test
       initPlace = (3,5)
   
-  loop initBoard initPlace
+  loop initBoard Structure.White initPlace
   
   return ()
 
-loop :: Matrix Place -> Pos -> IO ()
-loop m place@(x,y) = do
-  print "loop: q ENTER w s a d"
+loop :: Matrix Place -> Player -> Pos -> IO ()
+loop oldBoard p place@(x,y) = do
+  print ("loop, player " ++ show p ++ " place " ++ show place)
+  print "commands: q ENTER w s a d"
+  
+  let m = postMoveEffects oldBoard
   
   putStrLn (printableMatrix m colorPlace [place] colorMove (getMoves m place) colorAttack (getAttacks m place))
   
@@ -37,26 +40,41 @@ loop m place@(x,y) = do
   print ("loop: " ++ l)
   
   let setLeft = if y == 1 then 1 else y-1
-  let setRight = if y == 8 then 8 else y+1
-  let setUp = if x == 1 then 1 else x-1
-  let setDown = if x == 8 then 8 else x+1
+      setRight = if y == 8 then 8 else y+1
+      setUp = if x == 1 then 1 else x-1
+      setDown = if x == 8 then 8 else x+1
+  
+      (Just getPiece) = piece (getElem x y m)
+      notAvailable = isNothing (piece (getElem x y m)) || player getPiece /= p
+      
+      selectPiece =
+        if notAvailable
+          then loop m p place
+          else selectPieceLoop m p place (place:(getMoves m place ++ getAttacks m place))
   
   case l of
     "q" -> return ()
-    "a" -> loop m (x,setLeft)
-    "d" -> loop m (x,setRight)
-    "w" -> loop m (setUp,y)
-    "s" -> loop m (setDown,y)
-    "" -> if isNothing (piece (getElem x y m)) then loop m place else selectPieceLoop m place (place:(getMoves m place ++ getAttacks m place))
-    _ -> loop m place
+    "a" -> loop m p (x,setLeft)
+    "d" -> loop m p (x,setRight)
+    "w" -> loop m p (setUp,y)
+    "s" -> loop m p (setDown,y)
+    "" -> selectPiece
+    _ -> loop m p place
   
   return ()
 
-selectPieceLoop :: Matrix Place -> Pos -> [Pos] -> IO ()
-selectPieceLoop m place moves = do
-  print "selectPieceLoop: q \ESC ENTER w s"
+selectPieceLoop :: Matrix Place -> Player -> Pos -> [Pos] -> IO ()
+selectPieceLoop m p place moves = do
+  print ("selectPieceLoop, player " ++ show p ++ " place " ++ show place ++ " movements " ++ show moves)
+  print "commands: q \ESC ENTER w s"
   
   let actual = head moves
+      nextMove = selectPieceLoop m p place (tail moves ++ [actual])
+      previousMove = selectPieceLoop m p place (last moves : init moves)
+      toMove =
+        if actual == place
+          then selectPieceLoop m p place moves
+          else loop (move m place actual) (changePlayer p) actual
   
   putStrLn (printableMatrix m colorPlace [actual] colorMove (getMoves m place) colorAttack (getAttacks m place))
   
@@ -66,10 +84,12 @@ selectPieceLoop m place moves = do
   
   case l of
     "q" -> return ()
-    "\ESC" -> loop m actual
-    "" -> if actual == place then selectPieceLoop m place moves else loop (move m place actual) actual
-    "s" -> selectPieceLoop m place (tail moves ++ [actual])
-    "w" -> selectPieceLoop m place (last moves : init moves)
-    _ -> selectPieceLoop m place moves
+    "\ESC" -> loop m p actual
+    "" -> toMove
+    "s" -> nextMove
+    "a" -> nextMove
+    "w" -> previousMove
+    "d" -> previousMove
+    _ -> selectPieceLoop m p place moves
   
   return ()
