@@ -20,14 +20,18 @@ colorAttack = "\x1b[31m"
 
 main :: IO ()
 main = do
+  setSGR [SetColor Background Dull System.Console.ANSI.Black]
   setTitle "doubtless chess"
   
   let initBoard = matrix 8 8 starting--Test2
-      initPlace = (1,2)
+      initPlace = (7,5)
   
   loop initBoard Structure.White initPlace
-  
-  return ()
+
+exit :: IO ()
+exit = do
+  setSGR [Reset]
+  exitSuccess
 
 loop :: Matrix Place -> Player -> Pos -> IO ()
 loop oldBoard p place@(x,y) = do
@@ -39,7 +43,7 @@ loop oldBoard p place@(x,y) = do
   when (isCheck m p) (putStrLn "Check!")
   when (isCheckMate m p) (putStrLn "Checkmate!\nExiting...")
   putStrLn (printableMatrix m colorPlace [place] colorMove (getMoves m place) colorAttack (getAttacks m place))
-  when (isCheckMate m p) exitSuccess
+  when (isCheckMate m p) exit
   
   l <- getLine
   
@@ -54,7 +58,7 @@ loop oldBoard p place@(x,y) = do
           else selectPieceLoop m p place (place:(getMoves m place ++ getAttacks m place))
   
   case l of
-    "q" -> return ()
+    "q" -> exit
     "a" -> loop m p (x,setLeft y)
     "d" -> loop m p (x,setRight y)
     "w" -> loop m p (setUp x,y)
@@ -83,7 +87,7 @@ selectPieceLoop m p place moves = do
   print ("selectPieceLoop: " ++ l)
   
   case l of
-    "q" -> return ()
+    "q" -> exit
     "\ESC" -> loop m p actual
     "" -> toMove
     "s" -> moveNear (x+1,y)
