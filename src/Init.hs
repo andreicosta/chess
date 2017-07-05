@@ -33,7 +33,15 @@ startingTest (4,4) = Place (Just (Piece Rook White 17))
 startingTest (2,4) = Place (Just (Piece Pawn White 15))
 startingTest (4,6) = Place (Just (Piece Queen Black 16))
 startingTest (3,5) = Place (Just (Piece Pawn Black 1))
+startingTest (1,6) = Place (Just (Piece King White 2))
 startingTest (_,_) = Place Nothing
+
+startingTest2 :: Pos -> Place
+--startingTest2 (1,1) = Place (Just (Piece Rook White 1))
+startingTest2 (2,3) = Place (Just (Piece Queen White 2))
+startingTest2 (3,5) = Place (Just (Piece King White 3))
+startingTest2 (1,1) = Place (Just (Piece King Black 4))
+startingTest2 (_,_) = Place Nothing
 
 -- Fixed (board independently) Configurations
 

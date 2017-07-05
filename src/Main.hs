@@ -1,8 +1,11 @@
 module Main where
 
+import Control.Monad (when)
+
 import Data.Maybe
 import Data.Matrix
 import System.Console.ANSI
+import System.Exit
 
 import Actions
 import Init
@@ -19,8 +22,8 @@ main :: IO ()
 main = do
   setTitle "doubtless chess"
   
-  let initBoard = matrix 8 8 starting--Test
-      initPlace = (3,5)
+  let initBoard = matrix 8 8 starting--Test2
+      initPlace = (1,2)
   
   loop initBoard Structure.White initPlace
   
@@ -33,7 +36,10 @@ loop oldBoard p place@(x,y) = do
   
   let m = postMoveEffects oldBoard
   
+  when (isCheck m p) (putStrLn "Check!")
+  when (isCheckMate m p) (putStrLn "Checkmate!\nExiting...")
   putStrLn (printableMatrix m colorPlace [place] colorMove (getMoves m place) colorAttack (getAttacks m place))
+  when (isCheckMate m p) exitSuccess
   
   l <- getLine
   
@@ -88,7 +94,14 @@ selectPieceLoop m p place moves = do
   
   return ()
 
+setLeft :: Int -> Int
 setLeft y = if y == 1 then 1 else y-1
+
+setRight :: Int -> Int
 setRight y = if y == 8 then 8 else y+1
+
+setUp :: Int -> Int
 setUp x = if x == 1 then 1 else x-1
+
+setDown :: Int -> Int
 setDown x = if x == 8 then 8 else x+1
