@@ -3,14 +3,8 @@ module Actions
   , attack
   , getMoves
   , move
-  , postMoveEffects
-  , changePlayer
-  , sortNearPos
-  , isCheck
-  , isCheckMate
   ) where
 
-import Data.List
 import Data.Maybe
 import Data.Matrix
 
@@ -100,54 +94,3 @@ getMoves = getMovements allMoves
 
 getAttacks :: Matrix Place -> Pos -> [Pos]
 getAttacks = getMovements allAttacks
-
--- additional
-
-postMoveEffects :: Matrix Place -> Matrix Place
-postMoveEffects = pawnOnFinal
-
-pawnOnFinal :: Matrix Place -> Matrix Place
-pawnOnFinal m = matrix 8 8 $ \(x,y) -> if isPawnOnFinal x y then Place (Just (updatePiece x y)) else getElem x y m
-  where
-    getPiece x y = fromMaybe (error "error: pawnOnFinal: getPiece") (piece (getElem x y m))
-    isPawnOnFinal x y =
-      isJust(piece (getElem x y m)) &&
-      (x == 1 && typ (getPiece x y) == Pawn && player (getPiece x y) == Structure.White ||
-       x == 8 && typ (getPiece x y) == Pawn && player (getPiece x y) == Structure.Black)
-    
-    updatePiece x y = (getPiece x y) {typ = Queen}
-
-changePlayer :: Player -> Player
-changePlayer p = if p == White then Black else White
-
--- interface
-sortNearPos :: Pos -> [Pos] -> [Pos]
-sortNearPos (x1,y1) l = nearest ++ [head l]
-  where
-   nearest = sortBy (\p1 p2 -> compare (dist p1) (dist p2)) (tail l)
-   dist (x2,y2) = ((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1))
-
--- checks
-isCheck :: Matrix Place -> Player -> Bool
-isCheck m p = elem True killers 
-  where
-    killers = matrix 8 8 (\p -> isPiece p && isOpposite p && canKillKing p)
-    myKing = concat (toList (matrix 8 8 (\p -> if isPiece p && not (isOpposite p) && isKing p then [p] else [])))
-    
-    getPiece (x,y) = fromMaybe (error "error: isCheck: getPiece") (piece (getElem x y m))
-    
-    isPiece (x,y) = isJust (piece (getElem x y m))
-    isKing (x,y) = typ (getPiece (x,y)) == King
-    isOpposite (x,y) = player (getPiece (x,y)) /= p
-    canKillKing (x,y) = any (\attack -> attack `elem` myKing) (getAttacks m (x,y))
-
-isCheckMate :: Matrix Place -> Player -> Bool
-isCheckMate m p = all (==True) (concat (toList movement))
-  where
-    getPiece (x,y) = fromMaybe (error "error: isCheckMate: getPiece") (piece (getElem x y m))
-    isPiece (x,y) = isJust (piece (getElem x y m))
-    isOpposite (x,y) = player (getPiece (x,y)) /= p
-    
-    mvsAttcks (x,y) = getAttacks m (x,y) ++ getMoves m (x,y)
-    movement = matrix 8 8 (\(x,y) -> if isPiece (x,y) && not (isOpposite (x,y)) then map (\p -> moveIsCheck (x,y) p) (mvsAttcks (x,y)) else [])
-    moveIsCheck old new = isCheck (move m old new) p

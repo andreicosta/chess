@@ -8,8 +8,11 @@ import System.Console.ANSI
 import System.Exit
 
 import Actions
+import Check
 import Init
+import Path
 import Structure
+import Util
 
 colorPlace :: String
 colorPlace = "\x1b[32m"
@@ -74,7 +77,7 @@ selectPieceLoop m p place moves = do
   print "commands: q \ESC ENTER w s"
   
   let actual@(x,y) = head moves
-      moveNear to = selectPieceLoop m p place (sortNearPos to moves)
+      moveNear to = selectPieceLoop m p place (nextPos to moves)
       toMove =
         if actual == place
           then selectPieceLoop m p place moves
