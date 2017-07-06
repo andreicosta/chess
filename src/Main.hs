@@ -8,7 +8,6 @@ import System.Console.ANSI
 import System.Exit
 
 import Actions
-import Check
 import Init
 import Path
 import Structure
@@ -26,8 +25,8 @@ main = do
   setSGR [SetColor Background Dull System.Console.ANSI.Black]
   setTitle "doubtless chess"
   
-  let initBoard = matrix 8 8 starting--Test2
-      initPlace = (7,5)
+  let initBoard = matrix 8 8 startingTest2
+      initPlace = (2,2)
   
   loop initBoard Structure.White initPlace
 

@@ -30,7 +30,6 @@ executable chess
                        ansi-terminal >= 0.6
   default-language:    Haskell2010
   other-modules:       Actions
-                       Check
                        Init
                        Path
                        Structure
