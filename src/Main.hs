@@ -25,8 +25,8 @@ main = do
   setSGR [SetColor Background Dull System.Console.ANSI.Black]
   setTitle "doubtless chess"
   
-  let initBoard = matrix 8 8 startingTest2
-      initPlace = (2,2)
+  let initBoard = matrix 8 8 starting--Test2
+      initPlace = (7,5)
   
   loop initBoard Structure.White initPlace
 
@@ -35,10 +35,10 @@ exit = do
   setSGR [Reset]
   exitSuccess
 
-loop :: Matrix Place -> Player -> Pos -> IO ()
+loop :: Board -> Player -> Pos -> IO ()
 loop oldBoard p place@(x,y) = do
-  print ("loop, player " ++ show p ++ " place " ++ show place)
-  print "commands: q ENTER w s a d"
+  putStrLn ("loop, player " ++ show p ++ " place " ++ show place)
+  putStrLn "commands: q ENTER w s a d"
   
   let m = postMoveEffects oldBoard
   
@@ -49,7 +49,7 @@ loop oldBoard p place@(x,y) = do
   
   l <- getLine
   
-  print ("loop: " ++ l)
+  putStrLn ("loop: " ++ l)
   
   let (Just getPiece) = piece (getElem x y m)
       notAvailable = isNothing (piece (getElem x y m)) || player getPiece /= p
@@ -70,10 +70,10 @@ loop oldBoard p place@(x,y) = do
   
   return ()
 
-selectPieceLoop :: Matrix Place -> Player -> Pos -> [Pos] -> IO ()
+selectPieceLoop :: Board -> Player -> Pos -> [Pos] -> IO ()
 selectPieceLoop m p place moves = do
-  print ("selectPieceLoop, player " ++ show p ++ " place " ++ show place ++ " movements " ++ show moves)
-  print "commands: q \ESC ENTER w s"
+  putStrLn ("selectPieceLoop, player " ++ show p ++ " place " ++ show place ++ " movements " ++ show moves)
+  putStrLn "commands: q \ESC ENTER w s"
   
   let actual@(x,y) = head moves
       moveNear to = selectPieceLoop m p place (nextPos to moves)
@@ -86,7 +86,7 @@ selectPieceLoop m p place moves = do
   
   l <- getLine
   
-  print ("selectPieceLoop: " ++ l)
+  putStrLn ("selectPieceLoop: " ++ l)
   
   case l of
     "q" -> exit

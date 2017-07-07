@@ -8,11 +8,12 @@ import Data.Matrix
 
 import Structure
 
-postMoveEffects :: Matrix Place -> Matrix Place
-postMoveEffects = pawnOnFinal
+postMoveEffects :: Board -> Board
+postMoveEffects = pawnPromotion
 
-pawnOnFinal :: Matrix Place -> Matrix Place
-pawnOnFinal m = matrix 8 8 $ \(x,y) -> if isPawnOnFinal x y then Place (Just (updatePiece x y)) else getElem x y m
+-- for while it only promotes to queen
+pawnPromotion :: Board -> Board
+pawnPromotion m = matrix 8 8 $ \(x,y) -> if isPawnOnFinal x y then Place (Just (updatePiece x y)) else getElem x y m
   where
     getPiece x y = fromMaybe (error "error: pawnOnFinal: getPiece") (piece (getElem x y m))
     isPawnOnFinal x y =

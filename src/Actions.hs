@@ -15,7 +15,7 @@ import Structure
 
 -- movements 
 
-checkMove :: Matrix Place -> Piece -> (Int,Int) -> (Int,Int) -> Bool
+checkMove :: Board -> Piece -> Pos -> Pos -> Bool
 checkMove m (Piece Pawn _ _) _ (i,j) = isNothing (piece (getElem i j m))
 checkMove m (Piece Knight _ _) _ (i,j) = isNothing (piece (getElem i j m))
 checkMove m (Piece King _ _) _ (i,j) = isNothing (piece (getElem i j m))
@@ -30,7 +30,7 @@ checkMove m (Piece Queen p _) (ai,aj) (ni,nj) =
     then checkMove m (Piece Rook p undefined) (ai,aj) (ni,nj)
     else checkMove m (Piece Bishop p undefined) (ai,aj) (ni,nj)
 
-checkAttack :: Matrix Place -> Piece -> (Int,Int) -> (Int,Int) -> Bool
+checkAttack :: Board -> Piece -> Pos -> Pos -> Bool
 checkAttack m (Piece Pawn p _) _ (i,j) = isJust (piece (getElem i j m)) && diferentPlayers
   where
     toElem = fromMaybe (error "checkAttack: Pawn: toElem") (piece (getElem i j m))
@@ -62,30 +62,30 @@ checkAttack m (Piece Queen p _) (ai,aj) (ni,nj) =
     then checkAttack m (Piece Rook p undefined) (ai,aj) (ni,nj)
     else checkAttack m (Piece Bishop p undefined) (ai,aj) (ni,nj)
 
-move :: Matrix Place -> Pos -> Pos -> Matrix Place
+move :: Board -> Pos -> Pos -> Board
 move m act@(ai,aj) new = m3
   where
     elem = getElem ai aj m
     m2 = setElem (Place Nothing) act m
     m3 = setElem elem new m2
 
-attack :: Matrix Place -> Pos -> Pos -> Matrix Place
+attack :: Board -> Pos -> Pos -> Board
 attack = move
 
-allMoves :: Matrix Place -> Pos -> Piece -> [Pos]
+allMoves :: Board -> Pos -> Piece -> [Pos]
 allMoves m pos@(i,j) whatIsThere = filter (checkMove m whatIsThere pos) allBoardMoves
   where
     firstPawnMove = typ whatIsThere == Pawn && ((i == 2 && player whatIsThere == Black) || (i == 7 && player whatIsThere == White))
     all = moves whatIsThere ++ (if firstPawnMove then map (\(x,y) -> (x*2,y)) (moves whatIsThere) else [])
     allBoardMoves = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (x+i,y+j) else Nothing) all
 
-allAttacks :: Matrix Place -> Pos -> Piece -> [Pos]
+allAttacks :: Board -> Pos -> Piece -> [Pos]
 allAttacks m pos@(i,j) whatIsThere = filter (checkAttack m whatIsThere pos) allBoardAttacks
   where
     all = attacks whatIsThere
     allBoardAttacks = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (x+i,y+j) else Nothing) all
 
-getMovements :: (Matrix Place -> Pos -> Piece -> [Pos]) -> Matrix Place -> Pos -> [Pos]
+getMovements :: (Board -> Pos -> Piece -> [Pos]) -> Board -> Pos -> [Pos]
 getMovements f m (x,y) = if isNothing (piece place) then [] else filter_ mvs
   where
     place = getElem x y m
@@ -95,22 +95,22 @@ getMovements f m (x,y) = if isNothing (piece place) then [] else filter_ mvs
     mvs = getMovementsFree f m (x,y)
     filter_ = filter (\new -> not (isCheck (move m (x,y) new) p))
 
-getMovementsFree :: (Matrix Place -> Pos -> Piece -> [Pos]) -> Matrix Place -> Pos -> [Pos]
+getMovementsFree :: (Board -> Pos -> Piece -> [Pos]) -> Board -> Pos -> [Pos]
 getMovementsFree f m (x,y) = if isNothing (piece place) then [] else f m (x,y) whatIsThere
   where
     place = getElem x y m
     (Just whatIsThere) = piece place
 
-getMoves :: Matrix Place -> Pos -> [Pos]
+getMoves :: Board -> Pos -> [Pos]
 getMoves = getMovements allMoves
 
-getAttacks :: Matrix Place -> Pos -> [Pos]
+getAttacks :: Board -> Pos -> [Pos]
 getAttacks = getMovements allAttacks
 
-getAttacksFree :: Matrix Place -> Pos -> [Pos]
+getAttacksFree :: Board -> Pos -> [Pos]
 getAttacksFree = getMovementsFree allAttacks
 
-getMovesFree :: Matrix Place -> Pos -> [Pos]
+getMovesFree :: Board -> Pos -> [Pos]
 getMovesFree = getMovementsFree allMoves
 
 
@@ -120,7 +120,7 @@ getMovesFree = getMovementsFree allMoves
 ---- Check
 
 -- | Returns `True` if player `p` is under a check
-isCheck :: Matrix Place -> Player -> Bool
+isCheck :: Board -> Player -> Bool
 isCheck m p = True `elem` killers 
   where
     killers = matrix 8 8 isKiller
@@ -130,7 +130,7 @@ isCheck m p = True `elem` killers
     isMyKing pos = [pos | isPiece m pos && not (isOpposite m p pos) && isKing m pos]
 
 -- | Returns `True` if player `p` is under a checkmate
-isCheckMate :: Matrix Place -> Player -> Bool
+isCheckMate :: Board -> Player -> Bool
 isCheckMate m p = all (==True) (concat (toList checkFreeMovements))
   where
     checkFreeMovements = matrix 8 8 verifyCheck
@@ -138,17 +138,17 @@ isCheckMate m p = all (==True) (concat (toList checkFreeMovements))
     movements pos = getAttacksFree m pos ++ getMovesFree m pos
     moveIsCheck old new = isCheck (move m old new) p
 
-getPiece :: Matrix Place -> Pos -> Piece
+getPiece :: Board -> Pos -> Piece
 getPiece m (x,y) = fromMaybe (error "error: getPiece") (piece (getElem x y m))
 
-isPiece :: Matrix Place -> Pos -> Bool
+isPiece :: Board -> Pos -> Bool
 isPiece m (x,y) = isJust (piece (getElem x y m))
 
-isOpposite :: Matrix Place -> Player -> Pos -> Bool
+isOpposite :: Board -> Player -> Pos -> Bool
 isOpposite m p (x,y) = player (getPiece m (x,y)) /= p
 
-isKing :: Matrix Place -> Pos -> Bool
+isKing :: Board -> Pos -> Bool
 isKing m (x,y) = typ (getPiece m (x,y)) == King
 
-canKillKing :: Matrix Place -> [Pos] -> Pos -> Bool
+canKillKing :: Board -> [Pos] -> Pos -> Bool
 canKillKing m myKing (x,y) = any (`elem` myKing) (getAttacks m (x,y))

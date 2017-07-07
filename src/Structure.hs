@@ -3,16 +3,16 @@ module Structure where
 import Data.Maybe
 import Data.Matrix
 
-type Pos = (Int,Int)
+type File = Int
+type Rank = Int
+
+type Pos = (Rank,File)
 
 data Player = White | Black deriving(Eq)
 
 instance Show Player where
-  show White = "w"
-  show Black = "b"
-
--- ignoring Pawns initial double move
---data Init = FirstMove | NormalMove deriving (Eq)
+  show White = colorVividWhite ++ "w" ++ colorWhite
+  show Black = colorVividBlack ++ "b" ++ colorWhite
 
 data Type = Pawn | Queen | King | Rook | Bishop | Knight deriving(Eq)
 
@@ -40,13 +40,23 @@ data Place = Place
 instance Show Place where
   show (Place (Just piece)) = show piece
   show (Place Nothing) = "  "
-  
+
+type Board = Matrix Place
+
+colorWhite :: String
+colorWhite = "\x1b[39m"
+
+colorVividBlack :: String
+colorVividBlack = "\x1b[1;30m"
+
+colorVividWhite :: String
+colorVividWhite = "\x1b[1;37m"
+
 -- Print Matrix
-printableMatrix :: Matrix Place -> String -> [Pos] -> String -> [Pos] -> String -> [Pos] -> String
+printableMatrix :: Board -> String -> [Pos] -> String -> [Pos] -> String -> [Pos] -> String
 printableMatrix m colorPiece piecePoints colorPoints movePoints colorAttack attackPoints =
   concatMap (\x -> concatMap (\y -> print x y ++ " ") [1..8] ++ "\n") [1..8]
   where
-    colorWhite = "\x1b[39m"
     printPiece x y = if isNothing (piece (getElem x y m)) then colorPiece ++ "()" ++ colorWhite else printColorPiece x y
     --to diff attackPieces: printColorPiece x y = if (x,y) `elem` attackPoints then colorPiece ++ show (getElem x y m) ++ colorWhite else colorPiece ++ show (getElem x y m) ++ colorWhite
     printColorPiece x y = colorPiece ++ show (getElem x y m) ++ colorWhite
