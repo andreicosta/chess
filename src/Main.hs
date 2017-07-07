@@ -28,17 +28,17 @@ main = do
   let initBoard = matrix 8 8 starting--Test2
       initPlace = (7,5)
   
-  loop initBoard Structure.White initPlace
+  loop initBoard Structure.White initPlace []
 
 exit :: IO ()
 exit = do
   setSGR [Reset]
   exitSuccess
 
-loop :: Board -> Player -> Pos -> IO ()
-loop oldBoard p place@(x,y) = do
+loop :: Board -> Player -> Pos -> [(Pos,Pos)] -> IO ()
+loop oldBoard p place@(x,y) history = do
   putStrLn ("loop, player " ++ show p ++ " place " ++ show place)
-  putStrLn "commands: q ENTER w s a d"
+  putStrLn "commands: q ENTER w s a d back"
   
   let m = postMoveEffects oldBoard
       (Just getPiece) = piece (getElem x y m)
@@ -51,16 +51,18 @@ loop oldBoard p place@(x,y) = do
       
       selectPiece =
         if notAvailable
-          then loop m p place
-          else selectPieceLoop m p place (place:(pieceMoves ++ pieceAttacks))
+          then loop m p place history
+          else selectPieceLoop m p place (place:(pieceMoves ++ pieceAttacks)) history
+      
+      backHistory = loop (move m (snd (head history)) (fst (head history))) (changePlayer p) place (tail history)
   
-  putStrLn ("moves " ++ show pieceMoves)
-  putStrLn ("attacks " ++ show pieceAttacks)
+  --putStrLn ("moves " ++ show pieceMoves)
+  --putStrLn ("attacks " ++ show pieceAttacks)
   
   when (isCheck m p) (putStrLn "Check!")
-  when (isCheckMate m p) (putStrLn "Checkmate!\nExiting...")
+  when (isCheckMate m p) (putStrLn "Checkmate!")
   putStrLn (printableMatrix m colorPlace [place] colorMove pieceMoves colorAttack pieceAttacks)
-  when (isCheckMate m p) exit
+  --when (isCheckMate m p) exit
   
   l <- getLine
   
@@ -68,26 +70,27 @@ loop oldBoard p place@(x,y) = do
   
   case l of
     "q" -> exit
-    "a" -> loop m p (x,setLeft y)
-    "d" -> loop m p (x,setRight y)
-    "w" -> loop m p (setUp x,y)
-    "s" -> loop m p (setDown x,y)
+    "a" -> loop m p (x,setLeft y) history
+    "d" -> loop m p (x,setRight y) history
+    "w" -> loop m p (setUp x,y) history
+    "s" -> loop m p (setDown x,y) history
+    "back" -> if null history then loop m p place history else backHistory
     "" -> selectPiece
-    _ -> loop m p place
+    _ -> loop m p place history
   
   return ()
 
-selectPieceLoop :: Board -> Player -> Pos -> [Pos] -> IO ()
-selectPieceLoop m p place moves = do
+selectPieceLoop :: Board -> Player -> Pos -> [Pos] -> [(Pos,Pos)] -> IO ()
+selectPieceLoop m p place moves history = do
   putStrLn ("selectPieceLoop, player " ++ show p ++ " place " ++ show place ++ " movements " ++ show moves)
   putStrLn "commands: q ESC ENTER w s"
   
   let actual@(x,y) = head moves
-      moveNear to = selectPieceLoop m p place (nextPos to moves)
+      moveNear to = selectPieceLoop m p place (nextPos to moves) history
       toMove =
         if actual == place
-          then selectPieceLoop m p place moves
-          else loop (move m place actual) (changePlayer p) actual
+          then selectPieceLoop m p place moves history
+          else loop (move m place actual) (changePlayer p) actual ((place,actual):history)
   
   putStrLn (printableMatrix m colorPlace [actual] colorMove (getMoves m place) colorAttack (getAttacks m place))
   
@@ -97,13 +100,13 @@ selectPieceLoop m p place moves = do
   
   case l of
     "q" -> exit
-    "\ESC" -> loop m p actual
+    "\ESC" -> loop m p actual history
     "" -> toMove
     "s" -> moveNear (x+1,y)
     "a" -> moveNear (x,y-1)
     "w" -> moveNear (x-1,y)
     "d" -> moveNear (x,y+1)
-    _ -> selectPieceLoop m p place moves
+    _ -> selectPieceLoop m p place moves history
   
   return ()
 

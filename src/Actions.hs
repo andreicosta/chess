@@ -12,7 +12,6 @@ import Data.Matrix
 
 import Init
 import Structure
-import Util
 
 -- movements 
 
