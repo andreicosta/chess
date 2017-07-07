@@ -41,23 +41,30 @@ loop oldBoard p place@(x,y) = do
   putStrLn "commands: q ENTER w s a d"
   
   let m = postMoveEffects oldBoard
+      (Just getPiece) = piece (getElem x y m)
+      isTurn = isJust (piece (getElem x y m)) && player getPiece == p
+      
+      pieceMoves = if isTurn then getMoves m place else []
+      pieceAttacks = if isTurn then getAttacks m place else []
+     
+      notAvailable = isNothing (piece (getElem x y m)) || not isTurn
+      
+      selectPiece =
+        if notAvailable
+          then loop m p place
+          else selectPieceLoop m p place (place:(pieceMoves ++ pieceAttacks))
+  
+  putStrLn ("moves " ++ show pieceMoves)
+  putStrLn ("attacks " ++ show pieceAttacks)
   
   when (isCheck m p) (putStrLn "Check!")
   when (isCheckMate m p) (putStrLn "Checkmate!\nExiting...")
-  putStrLn (printableMatrix m colorPlace [place] colorMove (getMoves m place) colorAttack (getAttacks m place))
+  putStrLn (printableMatrix m colorPlace [place] colorMove pieceMoves colorAttack pieceAttacks)
   when (isCheckMate m p) exit
   
   l <- getLine
   
   putStrLn ("loop: " ++ l)
-  
-  let (Just getPiece) = piece (getElem x y m)
-      notAvailable = isNothing (piece (getElem x y m)) || player getPiece /= p
-      
-      selectPiece =
-        if notAvailable
-          then loop m p place
-          else selectPieceLoop m p place (place:(getMoves m place ++ getAttacks m place))
   
   case l of
     "q" -> exit
@@ -73,7 +80,7 @@ loop oldBoard p place@(x,y) = do
 selectPieceLoop :: Board -> Player -> Pos -> [Pos] -> IO ()
 selectPieceLoop m p place moves = do
   putStrLn ("selectPieceLoop, player " ++ show p ++ " place " ++ show place ++ " movements " ++ show moves)
-  putStrLn "commands: q \ESC ENTER w s"
+  putStrLn "commands: q ESC ENTER w s"
   
   let actual@(x,y) = head moves
       moveNear to = selectPieceLoop m p place (nextPos to moves)

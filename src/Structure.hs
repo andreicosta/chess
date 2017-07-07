@@ -11,10 +11,13 @@ type Pos = (Rank,File)
 data Player = White | Black deriving(Eq)
 
 instance Show Player where
-  show White = colorVividWhite ++ "w" ++ colorWhite
+  show White = colorCyan ++ "w" ++ colorWhite
   show Black = colorVividBlack ++ "b" ++ colorWhite
 
 data Type = Pawn | Queen | King | Rook | Bishop | Knight deriving(Eq)
+
+allTypes :: [Type]
+allTypes = [Pawn,Queen,King,Rook,Bishop,Knight]
 
 instance Show Type where
   show Pawn = "P"
@@ -49,8 +52,8 @@ colorWhite = "\x1b[39m"
 colorVividBlack :: String
 colorVividBlack = "\x1b[1;30m"
 
-colorVividWhite :: String
-colorVividWhite = "\x1b[1;37m"
+colorCyan :: String
+colorCyan = "\x1b[36m"
 
 -- Print Matrix
 printableMatrix :: Board -> String -> [Pos] -> String -> [Pos] -> String -> [Pos] -> String
