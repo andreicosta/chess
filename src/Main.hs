@@ -60,7 +60,7 @@ loop oldBoard p place@(x,y) history = do
           then loop m p place history
           else selectPieceLoop m p place orderedMovements history
 
-      backHistory = loop (undoMovement m history getPiece) (changePlayer p) place (tail history)
+      backHistory = loop (undoMovement m (head history) getPiece) (changePlayer p) place (tail history)
 
   putStrLn ("history " ++ show history)
   putStrLn ("moves " ++ show pieceMoves)
@@ -99,7 +99,7 @@ selectPieceLoop m p piecePlace moves history = do
       pieceAttacks = map target (getAttacks m piecePlace history)
       
       moveNear to = selectPieceLoop m p piecePlace (nextPos to moves) history
-      moveOrAttack = if isAttack actual then attack m actual else move m piecePlace (x,y)
+      moveOrAttack = if isAttack actual then attack m actual else move m actual
       toMove =
         if (x,y) == piecePlace
           then selectPieceLoop m p piecePlace moves history

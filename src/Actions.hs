@@ -72,28 +72,56 @@ checkAttack m (Piece Queen p) move = let (ai,aj) = source move in let (ni,nj) = 
     then checkAttack m (Piece Rook p) move
     else checkAttack m (Piece Bishop p) move
 
-move :: Board -> Pos -> Pos -> Board
-move m act@(ai,aj) new = m3
+move :: Board -> Movement -> Board
+move m movement =
+  if isCastling movement then m4 else m3
   where
+    act@(ai,aj) = source movement
+    new@(_,nj) = target movement
+    
     elem = getElem ai aj m
     m2 = setElem (Place Nothing) act m
     m3 = setElem elem new m2
+    
+    (srcJ,j) = if nj < 5 then (1,4) else (8,6)
+    castlingMove = Movement (ai,srcJ) (ai,j) undefined []
+    m4 = move m3 castlingMove
 
 attack :: Board -> Movement -> Board
 attack m movement = if isEnPassant movement then killEnPassant else kill
   where
-    kill = move m (source movement) (target movement)
+    kill = move m movement
 
     x = if fst (target movement) == 3 then 4 else 5
     (_,y) = target movement
     killEnPassant = setElem (Place Nothing) (x,y) kill
 
 allMoves :: Board -> Pos -> Piece -> History -> [Movement]
-allMoves m pos@(i,j) piece _ = filter (checkMove m piece) allBoardMoves
+allMoves m pos@(i,j) piece h = filter (checkMove m piece) allBoardMoves
   where
     normalMoves = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (Movement pos (x+i,y+j) piece []) else Nothing) (moves piece)
+    castlingMoves = map (\new -> Movement pos new piece [Castling]) (getCastlingMoves m pos piece h)
     doubleStepMoves = map (\(x,y) -> Movement pos (x+i,y+j) piece [PawnDoubleMove]) (pawnDoubleStepMove pos piece)
-    allBoardMoves = normalMoves ++ doubleStepMoves
+    allBoardMoves = normalMoves ++ doubleStepMoves ++ castlingMoves
+
+getCastlingMoves :: Board -> Pos -> Piece -> History -> [Pos]
+getCastlingMoves m (i,j_) piece history =
+  if condKing then rookAvailable 1 ++ rookAvailable 8 else []
+  where
+    condKing = isType m King (i,j_) && kingNeverMoved && noCheck
+    condRook j = isPiece m (i,j) && isType m Rook (i,j) && rookNeverMoved j && freePath j && noPassByAttackedSquare j
+    
+    playr = player piece
+    rookAvailable j = [if j > j_ then (i,j_+2) else (i,j_-2) | condRook j]
+    
+    kingNeverMoved = all (\(Movement _ _ p _) -> p /= piece) history
+    rookNeverMoved j = all (\(Movement src _ _ _) -> src /= (i,j)) history
+    noCheck = not (isCheck m playr history)
+    freePath j = all (\p -> not (isPiece m (i,p))) (kingPath j)
+    noPassByAttackedSquare j = all (\p -> not (isCheck (stepMove p) playr [])) (kingPath j)
+    
+    stepMove p = move m (Movement (i,j_) (i,p) undefined [])
+    kingPath j = if j == 1 then [3,4] else [6,7]
 
 pawnDoubleStepMove :: Pos -> Piece -> [Pos]
 pawnDoubleStepMove (i,_) piece = if cond then addDoubleStep else []
@@ -107,8 +135,8 @@ pawnDoubleStepMove (i,_) piece = if cond then addDoubleStep else []
 allAttacks :: Board -> Pos -> Piece -> History -> [Movement]
 allAttacks m pos@(i,j) piece h = filter (checkAttack m piece) allBoardAttacks
   where
-    normalAttacks = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (Movement pos (x+i,y+j) piece [IsAttack]) else Nothing) (attacks piece)
-    enPassantAttacks = map (\new -> Movement pos new piece [IsEnPassant,IsAttack]) (enPassant pos piece h)
+    normalAttacks = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (Movement pos (x+i,y+j) piece [Attack]) else Nothing) (attacks piece)
+    enPassantAttacks = map (\new -> Movement pos new piece [EnPassant,Attack]) (enPassant pos piece h)
     allBoardAttacks = normalAttacks ++ enPassantAttacks
 
 enPassant :: Pos -> Piece -> History -> [Pos]
@@ -130,7 +158,7 @@ getMovements f m pos@(x,y) h = if isNothing (piece place) then [] else filter_ m
     p = player piece_
     
     mvs = f m pos piece_ h
-    filter_ = filter (\new -> not (isCheck (move m pos (target new)) p h))
+    filter_ = filter (\new -> not (isCheck (move m new) p h))
 
 getMoves :: Board -> Pos -> History -> [Movement]
 getMoves = getMovements allMoves
@@ -138,10 +166,12 @@ getMoves = getMovements allMoves
 getAttacks :: Board -> Pos -> History -> [Movement]
 getAttacks = getMovements allAttacks
 
-undoMovement :: Board -> [Movement] -> Piece -> Board
-undoMovement m history piece = if isEnPassant movement then createPawn else undoMove
+undoMovement :: Board -> Movement -> Piece -> Board
+undoMovement m movement piece
+  | isEnPassant movement = createPawn
+  | isCastling movement = restoreRook
+  | otherwise = undoMove
   where
-    movement = head history
     backSrc = source movement
     backTgt = target movement
     
@@ -150,8 +180,11 @@ undoMovement m history piece = if isEnPassant movement then createPawn else undo
     
     p' = changePlayer (player piece)
     createPawn = setElem (Place (Just (Piece Pawn p'))) (x,y) undoMove
-    undoMove = move m backTgt backSrc
-  
+    
+    (aj,nj) = if y == 3 then (4,1) else (6,8)
+    restoreRook = move undoMove (Movement (x,aj) (x,nj) (Piece Rook (player piece)) [])
+
+    undoMove = move m (Movement backTgt backSrc undefined [])
 
 ------------ Second Part
 ---- Check
@@ -176,9 +209,9 @@ isCheckMate :: Board -> Player -> History -> Bool
 isCheckMate m p h = all (==True) (concat (toList checkFreeMovements))
   where
     checkFreeMovements = matrix 8 8 verifyCheck
-    verifyCheck pos = if isPiece m pos && not (isOpposite m p pos) then map (moveIsCheck pos) (movements pos) else []
-    movements pos = map target (getAttacks m pos h ++ getMoves m pos h)
-    moveIsCheck old new = isCheck (move m old new) p h
+    verifyCheck pos = if isPiece m pos && not (isOpposite m p pos) then map moveIsCheck (movements pos) else []
+    movements pos = getAttacks m pos h ++ getMoves m pos h
+    moveIsCheck movement = isCheck (move m movement) p h
 
 getPiece :: Board -> Pos -> Piece
 getPiece m (x,y) = fromMaybe (error "error: getPiece") (piece (getElem x y m))

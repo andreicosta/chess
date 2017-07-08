@@ -8,7 +8,7 @@ type Rank = Int
 
 type Pos = (Rank,File)
 
-data Info = PawnDoubleMove | IsEnPassant | IsAttack deriving(Eq,Show)
+data Info = PawnDoubleMove | EnPassant | Attack | Castling deriving(Eq,Show)
 
 data Movement = Movement
   { source        :: Pos
@@ -22,11 +22,14 @@ instance Show Movement where
     show s ++ " -> " ++ show t ++
     concatMap (\f -> " " ++ show f) i
 
+isCastling :: Movement -> Bool
+isCastling m = Castling `elem` info m
+
 isEnPassant :: Movement -> Bool
-isEnPassant m = IsEnPassant `elem` info m
+isEnPassant m = EnPassant `elem` info m
 
 isAttack :: Movement -> Bool
-isAttack m = IsAttack `elem` info m
+isAttack m = Attack `elem` info m
 
 lastWasPawnDoubleMove :: History -> Bool
 lastWasPawnDoubleMove (h:_) = PawnDoubleMove `elem` info h
