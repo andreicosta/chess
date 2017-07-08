@@ -11,13 +11,14 @@ type Pos = (Rank,File)
 data Movement = Movement
   { source         :: Pos
   , target         :: Pos
+  , movementPiece  :: Piece
   , pawnDoubleMove :: Bool
   , isEnPassant    :: Bool
   , isAttack       :: Bool
   } deriving(Eq)
 
 instance Show Movement where
-  show (Movement s t f1 f2 f3) =
+  show (Movement s t _ f1 f2 f3) =
     show s ++ " -> " ++ show t ++ (if f1 then " pdm" else "") ++
     (if f2 then " ep" else "") ++ (if f3 then " at" else "")
 
@@ -56,11 +57,10 @@ instance Show Type where
 data Piece = Piece
   { typ :: Type
   , player :: Player
-  , id :: Int
   } deriving(Eq)
 
 instance Show Piece where
-  show (Piece t p _) = show t ++ show p
+  show (Piece t p) = show t ++ show p
 
 data Place = Place
   { piece :: Maybe Piece
