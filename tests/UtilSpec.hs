@@ -3,6 +3,7 @@ module UtilSpec where
 import Data.Matrix
 import Test.Hspec
 
+import Actions
 import Init
 import Structure
 import Util
@@ -14,6 +15,14 @@ spec = context "Util Functions Test" gprTest
 
 gprTest :: Spec
 gprTest = do
+  it "postMoveEffects" $ do
+    let board2 = attack initBoard (Movement (2,1) (8,1) (Piece Pawn Black) [])
+        board3 = attack initBoard (Movement (7,5) (1,3) (Piece Pawn White) [])
+    
+    postMoveEffects initBoard `shouldBe` initBoard
+    postMoveEffects board2 `shouldNotBe` board2
+    postMoveEffects board3 `shouldNotBe` board3
+  
   it "sets" $ do
     setLeft 1 `shouldBe` 1
     setLeft 8 `shouldBe` 7

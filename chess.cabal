@@ -50,4 +50,5 @@ test-suite HSpecTests
   other-modules:
                        ActionsSpec
                        HSpecTests
+                       StructureSpec
                        UtilSpec

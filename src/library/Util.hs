@@ -21,15 +21,14 @@ postMoveEffects = pawnPromotion
 
 -- for while it only promotes to queen
 pawnPromotion :: Board -> Board
-pawnPromotion m = matrix 8 8 $ \(x,y) -> if isPawnOnFinal x y then Place (Just (updatePiece x y)) else getElem x y m
+pawnPromotion m = matrix 8 8 $ \pos@(x,y) -> if isPawnOnFinal pos then Place (Just (updatePiece pos)) else getElem x y m
   where
-    getPiece x y = fromMaybe (error "error: pawnOnFinal: getPiece") (piece (getElem x y m))
-    isPawnOnFinal x y =
-      isJust(piece (getElem x y m)) &&
-      (x == 1 && typ (getPiece x y) == Pawn && player (getPiece x y) == Structure.White ||
-       x == 8 && typ (getPiece x y) == Pawn && player (getPiece x y) == Structure.Black)
+    isPawnOnFinal pos@(x,_) =
+      isPiece m pos &&
+      (x == 1 && isType m Pawn pos && isOpposite m Black pos ||
+       x == 8 && isType m Pawn pos && isOpposite m White pos)
     
-    updatePiece x y = (getPiece x y) {typ = Queen}
+    updatePiece pos = (getPiece m pos) {typ = Queen}
 
 changePlayer :: Player -> Player
 changePlayer p = if p == White then Black else White
