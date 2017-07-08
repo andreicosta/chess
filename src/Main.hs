@@ -53,7 +53,7 @@ loop oldBoard p place@(x,y) history = do
 
       notAvailable = isNothing (piece (getElem x y m)) || not isTurn
 
-      fakeMove = Movement place place undefined False False False
+      fakeMove = Movement place place undefined []
       orderedMovements = fakeMove : allMovements
       selectPiece =
         if notAvailable

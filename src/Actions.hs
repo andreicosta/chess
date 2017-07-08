@@ -91,8 +91,8 @@ attack m movement = if isEnPassant movement then killEnPassant else kill
 allMoves :: Board -> Pos -> Piece -> History -> [Movement]
 allMoves m pos@(i,j) piece _ = filter (checkMove m piece) allBoardMoves
   where
-    normalMoves = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (Movement pos (x+i,y+j) piece False False False) else Nothing) (moves piece)
-    doubleStepMoves = map (\(x,y) -> Movement pos (x+i,y+j) piece True False False) (pawnDoubleStepMove pos piece)
+    normalMoves = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (Movement pos (x+i,y+j) piece []) else Nothing) (moves piece)
+    doubleStepMoves = map (\(x,y) -> Movement pos (x+i,y+j) piece [PawnDoubleMove]) (pawnDoubleStepMove pos piece)
     allBoardMoves = normalMoves ++ doubleStepMoves
 
 pawnDoubleStepMove :: Pos -> Piece -> [Pos]
@@ -107,8 +107,8 @@ pawnDoubleStepMove (i,_) piece = if cond then addDoubleStep else []
 allAttacks :: Board -> Pos -> Piece -> History -> [Movement]
 allAttacks m pos@(i,j) piece h = filter (checkAttack m piece) allBoardAttacks
   where
-    normalAttacks = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (Movement pos (x+i,y+j) piece False False True) else Nothing) (attacks piece)
-    enPassantAttacks = map (\new -> Movement pos new piece False True True) (enPassant pos piece h)
+    normalAttacks = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (Movement pos (x+i,y+j) piece [IsAttack]) else Nothing) (attacks piece)
+    enPassantAttacks = map (\new -> Movement pos new piece [IsEnPassant,IsAttack]) (enPassant pos piece h)
     allBoardAttacks = normalAttacks ++ enPassantAttacks
 
 enPassant :: Pos -> Piece -> History -> [Pos]
