@@ -1,0 +1,36 @@
+language: haskell
+
+
+# Caching so the next build will be fast too.
+cache:
+  directories:
+  - $HOME/.stack
+
+before_install:
+# Download and unpack the stack executable
+- mkdir -p ~/.local/bin
+- export PATH=$HOME/.local/bin:$PATH
+- travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+- travis_retry curl -L https://github.com/rubik/stack-hpc-coveralls/releases/download/v0.0.4.0/shc-linux-x64-8.0.1.tar.bz2 | tar xj -C ~/.local/bin 'shc'
+
+
+# Verigraph build
+install:
+# Build dependencies
+- stack -j 2 --no-terminal --install-ghc test --only-dependencies
+
+script:
+#Clean package to force a full build and avoid hpc report conflicts
+- stack -j 2 --no-terminal clean --full
+
+# Build the package, its tests, coverage reports and run the tests
+- stack -j 2 --no-terminal test --coverage
+
+# Send results and notify
+
+after_script:
+#Send coverage data to coveralls.io
+- shc chess HSpecTests
+
+notifications:
+  email: false
