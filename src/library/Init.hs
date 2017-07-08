@@ -25,24 +25,6 @@ starting (7,_) = Place (Just (Piece Pawn White))
 
 starting (_,_) = Place Nothing
 
--- Alternative starting boards
-
-startingTest :: Pos -> Place
-startingTest (1,1) = Place (Just (Piece Rook White))
-startingTest (4,4) = Place (Just (Piece Rook White))
-startingTest (2,4) = Place (Just (Piece Pawn White))
-startingTest (4,6) = Place (Just (Piece Queen Black))
-startingTest (3,5) = Place (Just (Piece Pawn Black))
-startingTest (1,6) = Place (Just (Piece King White))
-startingTest (_,_) = Place Nothing
-
-startingTest2 :: Pos -> Place
---startingTest2 (1,1) = Place (Just (Piece Rook White))
-startingTest2 (2,3) = Place (Just (Piece Queen White))
-startingTest2 (3,5) = Place (Just (Piece King White))
-startingTest2 (1,1) = Place (Just (Piece King Black))
-startingTest2 (_,_) = Place Nothing
-
 -- Fixed (board independently) Configurations
 
 -- it's a simplification ...

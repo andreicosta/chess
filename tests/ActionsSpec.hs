@@ -23,6 +23,7 @@ fourMoveBoard = applyMovements initBoard fourMove
 startingCastling (1,1) = Place (Just (Piece Rook Black))
 startingCastling (1,5) = Place (Just (Piece King Black))
 startingCastling (1,8) = Place (Just (Piece Rook Black))
+startingCastling (3,7) = Place (Just (Piece Queen Black))
 startingCastling (8,1) = Place (Just (Piece Rook White))
 startingCastling (8,5) = Place (Just (Piece King White))
 startingCastling (8,8) = Place (Just (Piece Rook White))
@@ -46,6 +47,8 @@ gprTest = do
     --putStrLn "\n"
     --putStrLn (printableMatrix fourMoveBoard [] [] [] [] [] [])
     
+    isCheck fourMoveBoard White [] `shouldBe` False
+    isCheckMate fourMoveBoard White [] `shouldBe` False
     isCheck fourMoveBoard Black [] `shouldBe` True
     isCheckMate fourMoveBoard Black [] `shouldBe` True
   
@@ -60,8 +63,12 @@ gprTest = do
     
     all (==False) (map isCastling (getMoves boardCastling (1,5) moveCastling)) `shouldBe` True
     all (==False) (map isCastling (getMoves boardCastling (8,5) moveCastling)) `shouldBe` True
-    length (filter isCastling (getMoves boardCastling (1,5) [])) `shouldBe` 2
-    length (filter isCastling (getMoves boardCastling (8,5) [])) `shouldBe` 2
+    
+    let c1 = Movement (1,5) (1,3) (Piece King Black) [Castling]
+        c2 = Movement (1,5) (1,7) (Piece King Black) [Castling]
+        c3 = Movement (8,5) (8,3) (Piece King White) [Castling]
+    filter isCastling (getMoves boardCastling (1,5) []) `shouldBe` [c1,c2]
+    filter isCastling (getMoves boardCastling (8,5) []) `shouldBe` [c3]
     
     let castlingMove = head (filter isCastling (getMoves boardCastling (1,5) []))
         castl = move boardCastling castlingMove
