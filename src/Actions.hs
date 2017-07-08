@@ -5,6 +5,7 @@ module Actions
   , move
   , isCheck
   , isCheckMate
+  , undoMovement
   ) where
 
 import Data.Maybe
@@ -12,55 +13,64 @@ import Data.Matrix
 
 import Init
 import Structure
+import Util
 
 -- movements 
 
-checkMove :: Board -> Piece -> Pos -> Pos -> Bool
-checkMove m (Piece Pawn _ _) _ (i,j) = isNothing (piece (getElem i j m))
-checkMove m (Piece Knight _ _) _ (i,j) = isNothing (piece (getElem i j m))
-checkMove m (Piece King _ _) _ (i,j) = isNothing (piece (getElem i j m))
-checkMove m (Piece Rook _ _) (ai,aj) (ni,nj) =
+checkMove :: Board -> Piece -> Movement -> Bool
+checkMove m (Piece Pawn _ _) move = let (i,j) = target move in isNothing (piece (getElem i j m))
+checkMove m (Piece Knight _ _) move = let (i,j) = target move in isNothing (piece (getElem i j m))
+checkMove m (Piece King _ _) move = let (i,j) = target move in isNothing (piece (getElem i j m))
+checkMove m (Piece Rook _ _) move = let (ai,aj) = source move in let (ni,nj) = target move in
   all (\(x,y) -> isNothing (piece (getElem x y m)))
     [(x,y) | x <- [(min ai ni)..(max ai ni)], y <- [(min aj nj)..(max aj nj)], (x,y) /= (ai,aj)]
-checkMove m (Piece Bishop _ _) (ai,aj) (ni,nj) =
+checkMove m (Piece Bishop _ _) move = let (ai,aj) = source move in let (ni,nj) = target move in
   all (\(x,y) -> isNothing (piece (getElem x y m)))
     [(x,y) | x <- [(min ai ni)..(max ai ni)], y <- [(min aj nj)..(max aj nj)], abs (x-ai) == abs (y-aj), (x,y) /= (ai,aj)]
-checkMove m (Piece Queen p _) (ai,aj) (ni,nj) =
+checkMove m (Piece Queen p _) move = let (ai,aj) = source move in let (ni,nj) = target move in
   if ai-ni == 0 || aj-nj == 0
-    then checkMove m (Piece Rook p undefined) (ai,aj) (ni,nj)
-    else checkMove m (Piece Bishop p undefined) (ai,aj) (ni,nj)
+    then checkMove m (Piece Rook p undefined) move
+    else checkMove m (Piece Bishop p undefined) move
 
-checkAttack :: Board -> Piece -> Pos -> Pos -> Bool
-checkAttack m (Piece Pawn p _) _ (i,j) = isJust (piece (getElem i j m)) && diferentPlayers
+checkAttack :: Board -> Piece -> Movement -> Bool
+checkAttack m (Piece Pawn p _) move =
+  isEnPassant move || (isJust (piece (getElem i j m)) && diferentPlayers)
   where
+    (i,j) = target move
     toElem = fromMaybe (error "checkAttack: Pawn: toElem") (piece (getElem i j m))
     diferentPlayers = p /= player toElem
-checkAttack m (Piece Knight p _) _ (i,j) = isJust (piece (getElem i j m)) && diferentPlayers
+checkAttack m (Piece Knight p _) move = isJust (piece (getElem i j m)) && diferentPlayers
   where
+    (i,j) = target move
     toElem = fromMaybe (error "checkAttack: Knight: toElem") (piece (getElem i j m))
     diferentPlayers = p /= player toElem
-checkAttack m (Piece King p _) _ (i,j) = isJust (piece (getElem i j m)) && diferentPlayers
+checkAttack m (Piece King p _) move = isJust (piece (getElem i j m)) && diferentPlayers
   where
+    (i,j) = target move
     toElem = fromMaybe (error "checkAttack: King: toElem") (piece (getElem i j m))
     diferentPlayers = p /= player toElem
-checkAttack m (Piece Rook p _) (ai,aj) (ni,nj) = isJust (piece (getElem ni nj m)) && (freePath && diferentPlayers)
+checkAttack m (Piece Rook p _) move = isJust (piece (getElem ni nj m)) && (freePath && diferentPlayers)
   where
+    (ai,aj) = source move
+    (ni,nj) = target move
     toElem = fromMaybe (error "checkAttack: Rook: toElem") (piece (getElem ni nj m))
     diferentPlayers = p /= player toElem
     freePath =
       all (\(x,y) -> isNothing (piece (getElem x y m)))
         [(x,y) | x <- [(min ai ni)..(max ai ni)], y <- [(min aj nj)..(max aj nj)], (x,y) /= (ai,aj), (x,y) /= (ni,nj)]
-checkAttack m (Piece Bishop p _) (ai,aj) (ni,nj) = isJust (piece (getElem ni nj m)) && (freePath && diferentPlayers)
+checkAttack m (Piece Bishop p _) move = isJust (piece (getElem ni nj m)) && (freePath && diferentPlayers)
   where
+    (ai,aj) = source move
+    (ni,nj) = target move
     toElem = fromMaybe (error "checkAttack: Bishop: toElem") (piece (getElem ni nj m))
     diferentPlayers = p /= player toElem
     freePath =
       all (\(x,y) -> isNothing (piece (getElem x y m)))
         [(x,y) | x <- [(min ai ni)..(max ai ni)], y <- [(min aj nj)..(max aj nj)], abs (x-ai) == abs (y-aj), (x,y) /= (ai,aj), (x,y) /= (ni,nj)]
-checkAttack m (Piece Queen p _) (ai,aj) (ni,nj) =
+checkAttack m (Piece Queen p _) move = let (ai,aj) = source move in let (ni,nj) = target move in
   if ai-ni == 0 || aj-nj == 0
-    then checkAttack m (Piece Rook p undefined) (ai,aj) (ni,nj)
-    else checkAttack m (Piece Bishop p undefined) (ai,aj) (ni,nj)
+    then checkAttack m (Piece Rook p undefined) move
+    else checkAttack m (Piece Bishop p undefined) move
 
 move :: Board -> Pos -> Pos -> Board
 move m act@(ai,aj) new = m3
@@ -69,47 +79,86 @@ move m act@(ai,aj) new = m3
     m2 = setElem (Place Nothing) act m
     m3 = setElem elem new m2
 
-attack :: Board -> Pos -> Pos -> Board
-attack = move
-
-allMoves :: Board -> Pos -> Piece -> [Pos]
-allMoves m pos@(i,j) whatIsThere = filter (checkMove m whatIsThere pos) allBoardMoves
+attack :: Board -> Movement -> Board
+attack m movement = if isEnPassant movement then killEnPassant else kill
   where
-    firstPawnMove = typ whatIsThere == Pawn && ((i == 2 && player whatIsThere == Black) || (i == 7 && player whatIsThere == White))
-    all = moves whatIsThere ++ (if firstPawnMove then map (\(x,y) -> (x*2,y)) (moves whatIsThere) else [])
-    allBoardMoves = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (x+i,y+j) else Nothing) all
+    kill = move m (source movement) (target movement)
 
-allAttacks :: Board -> Pos -> Piece -> [Pos]
-allAttacks m pos@(i,j) whatIsThere = filter (checkAttack m whatIsThere pos) allBoardAttacks
+    x = if fst (target movement) == 3 then 4 else 5
+    (_,y) = target movement
+    killEnPassant = setElem (Place Nothing) (x,y) kill
+
+allMoves :: Board -> Pos -> Piece -> History -> [Movement]
+allMoves m pos@(i,j) piece _ = filter (checkMove m piece) allBoardMoves
   where
-    all = attacks whatIsThere
-    allBoardAttacks = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (x+i,y+j) else Nothing) all
+    normalMoves = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (Movement pos (x+i,y+j) False False False) else Nothing) (moves piece)
+    doubleStepMoves = map (\(x,y) -> Movement pos (x+i,y+j) True False False) (pawnDoubleStepMove pos piece)
+    allBoardMoves = normalMoves ++ doubleStepMoves
 
-getMovements :: (Board -> Pos -> Piece -> [Pos]) -> Board -> Pos -> [Pos]
-getMovements f m (x,y) = if isNothing (piece place) then [] else filter_ mvs
+pawnDoubleStepMove :: Pos -> Piece -> [Pos]
+pawnDoubleStepMove (i,_) piece = if cond then addDoubleStep else []
+  where
+    cond = isPawn && inPlace
+    isPawn = typ piece == Pawn
+    inPlace = (i == 2 && player piece == Black) || (i == 7 && player piece == White)
+
+    addDoubleStep = map (\(x,y) -> (x*2,y)) (moves piece)
+
+allAttacks :: Board -> Pos -> Piece -> History -> [Movement]
+allAttacks m pos@(i,j) piece h = filter (checkAttack m piece) allBoardAttacks
+  where
+    normalAttacks = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (Movement pos (x+i,y+j) False False True) else Nothing) (attacks piece)
+    enPassantAttacks = map (\new -> Movement pos new False True True) (enPassant pos piece h)
+    allBoardAttacks = normalAttacks ++ enPassantAttacks
+
+enPassant :: Pos -> Piece -> History -> [Pos]
+enPassant (i,_) piece history = [(x, y) | cond]
+  where
+    x = if i == 5 then 6 else 3
+    (_,y) = target (head history)
+
+    cond = isPawn && inPlace && enemyPawnDoubleMove
+    isPawn = typ piece == Pawn
+    inPlace = (i == 5 && player piece == Black) || (i == 4 && player piece == White)
+    enemyPawnDoubleMove = lastWasPawnDoubleMove history
+
+getMovements :: (Board -> Pos -> Piece -> History -> [Movement]) -> Board -> Pos -> History -> [Movement]
+getMovements f m pos@(x,y) h = if isNothing (piece place) then [] else filter_ mvs
   where
     place = getElem x y m
-    (Just whatIsThere) = piece place
-    p = player whatIsThere
+    (Just piece_) = piece place
+    p = player piece_
     
-    mvs = f m (x,y) whatIsThere
-    filter_ = filter (\new -> not (isCheck (move m (x,y) new) p))
+    mvs = f m pos piece_ h
+    filter_ = filter (\new -> not (isCheck (move m pos (target new)) p h))
 
-getMoves :: Board -> Pos -> [Pos]
+getMoves :: Board -> Pos -> History -> [Movement]
 getMoves = getMovements allMoves
 
-getAttacks :: Board -> Pos -> [Pos]
+getAttacks :: Board -> Pos -> History -> [Movement]
 getAttacks = getMovements allAttacks
 
-
-
+undoMovement :: Board -> [Movement] -> Piece -> Board
+undoMovement m history piece = if isEnPassant movement then createPawn else undoMove
+  where
+    movement = head history
+    backSrc = source movement
+    backTgt = target movement
+    
+    x = fst backSrc
+    y = snd backTgt
+    
+    p' = changePlayer (player piece)
+    createPawn = setElem (Place (Just (Piece Pawn p' undefined))) (x,y) undoMove
+    undoMove = move m backTgt backSrc
+  
 
 ------------ Second Part
 ---- Check
 
 -- | Returns `True` if player `p` is under a check
-isCheck :: Board -> Player -> Bool
-isCheck m p = if null kingList then error "error: isCheck" else not (null threat)
+isCheck :: Board -> Player -> History -> Bool
+isCheck m p h = if null kingList then error "error: isCheck" else not (null threat)
   where
     king = head kingList
     kingList = concat (toList (matrix 8 8 isMyKing))
@@ -118,18 +167,18 @@ isCheck m p = if null kingList then error "error: isCheck" else not (null threat
     threat =
       concatMap (\t ->
         concatMap
-          (\pos -> [pos | isPiece m pos && isOpposite m p pos && isType m t pos])
-        (allAttacks m king (Piece t p undefined))
+          (\mv -> let pos = target mv in [pos | isPiece m pos && isOpposite m p pos && isType m t pos])
+        (allAttacks m king (Piece t p undefined) h)
       ) allTypes
 
 -- | Returns `True` if player `p` is under a checkmate
-isCheckMate :: Board -> Player -> Bool
-isCheckMate m p = all (==True) (concat (toList checkFreeMovements))
+isCheckMate :: Board -> Player -> History -> Bool
+isCheckMate m p h = all (==True) (concat (toList checkFreeMovements))
   where
     checkFreeMovements = matrix 8 8 verifyCheck
     verifyCheck pos = if isPiece m pos && not (isOpposite m p pos) then map (moveIsCheck pos) (movements pos) else []
-    movements pos = getAttacks m pos ++ getMoves m pos
-    moveIsCheck old new = isCheck (move m old new) p
+    movements pos = map target (getAttacks m pos h ++ getMoves m pos h)
+    moveIsCheck old new = isCheck (move m old new) p h
 
 getPiece :: Board -> Pos -> Piece
 getPiece m (x,y) = fromMaybe (error "error: getPiece") (piece (getElem x y m))

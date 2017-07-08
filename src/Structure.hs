@@ -8,6 +8,32 @@ type Rank = Int
 
 type Pos = (Rank,File)
 
+data Movement = Movement
+  { source         :: Pos
+  , target         :: Pos
+  , pawnDoubleMove :: Bool
+  , isEnPassant    :: Bool
+  , isAttack       :: Bool
+  } deriving(Eq)
+
+instance Show Movement where
+  show (Movement s t f1 f2 f3) =
+    show s ++ " -> " ++ show t ++ (if f1 then " pdm" else "") ++
+    (if f2 then " ep" else "") ++ (if f3 then " at" else "")
+
+lastWasPawnDoubleMove :: History -> Bool
+lastWasPawnDoubleMove (h:_) = pawnDoubleMove h
+lastWasPawnDoubleMove _ = False
+
+getLastMovement :: History -> (Pos,Pos)
+getLastMovement (h:_) = (source h, target h)
+getLastMovement _ = error "there is no past."
+
+addHistory :: History -> Movement -> History
+addHistory h m = m : h
+
+type History = [Movement]
+
 data Player = White | Black deriving(Eq)
 
 instance Show Player where
