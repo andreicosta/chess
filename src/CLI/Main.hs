@@ -60,7 +60,7 @@ loop oldBoard p place@(x,y) history = do
           then loop m p place history
           else selectPieceLoop m p place orderedMovements history
 
-      backHistory = loop (undoMovement m (head history) getPiece) (changePlayer p) place (tail history)
+      backHistory = loop (undoMovement m (head history)) (changePlayer p) place (tail history)
 
   putStrLn ("history " ++ show history)
   putStrLn ("moves " ++ show pieceMoves)
@@ -122,15 +122,3 @@ selectPieceLoop m p piecePlace moves history = do
     _ -> selectPieceLoop m p piecePlace moves history
   
   return ()
-
-setLeft :: Int -> Int
-setLeft y = if y == 1 then 1 else y-1
-
-setRight :: Int -> Int
-setRight y = if y == 8 then 8 else y+1
-
-setUp :: Int -> Int
-setUp x = if x == 1 then 1 else x-1
-
-setDown :: Int -> Int
-setDown x = if x == 8 then 8 else x+1

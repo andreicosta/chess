@@ -166,12 +166,14 @@ getMoves = getMovements allMoves
 getAttacks :: Board -> Pos -> History -> [Movement]
 getAttacks = getMovements allAttacks
 
-undoMovement :: Board -> Movement -> Piece -> Board
-undoMovement m movement piece
+undoMovement :: Board -> Movement -> Board
+undoMovement m movement
   | isEnPassant movement = createPawn
   | isCastling movement = restoreRook
   | otherwise = undoMove
   where
+    piece = getPiece m (target movement)
+    
     backSrc = source movement
     backTgt = target movement
     
@@ -212,15 +214,3 @@ isCheckMate m p h = all (==True) (concat (toList checkFreeMovements))
     verifyCheck pos = if isPiece m pos && not (isOpposite m p pos) then map moveIsCheck (movements pos) else []
     movements pos = getAttacks m pos h ++ getMoves m pos h
     moveIsCheck movement = isCheck (move m movement) p h
-
-getPiece :: Board -> Pos -> Piece
-getPiece m (x,y) = fromMaybe (error "error: getPiece") (piece (getElem x y m))
-
-isPiece :: Board -> Pos -> Bool
-isPiece m (x,y) = isJust (piece (getElem x y m))
-
-isOpposite :: Board -> Player -> Pos -> Bool
-isOpposite m p pos = player (getPiece m pos) /= p
-
-isType :: Board -> Type -> Pos -> Bool
-isType m t pos = typ (getPiece m pos) == t

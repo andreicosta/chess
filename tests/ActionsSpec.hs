@@ -65,6 +65,6 @@ gprTest = do
     
     let castlingMove = head (filter isCastling (getMoves boardCastling (1,5) []))
         castl = move boardCastling castlingMove
-        undo = undoMovement castl castlingMove (Piece King Black)
+        undo = undoMovement castl castlingMove
     
     undo `shouldBe` boardCastling
