@@ -10,68 +10,77 @@ import Structure
 
 initBoard = matrix 8 8 starting
 
-fourMove =
-  [Movement (7,5) (5,5) (Piece Pawn White) [PawnDoubleMove],
-   Movement (2,5) (4,5) (Piece Pawn Black) [PawnDoubleMove],
-   Movement (8,6) (5,3) (Piece Bishop White) [],
-   Movement (1,2) (3,3) (Piece Knight Black) [],
-   Movement (8,4) (4,8) (Piece Queen White) [],
-   Movement (1,7) (3,6) (Piece Knight Black) [],
-   Movement (4,8) (2,6) (Piece Queen White) [Attack]]
-fourMoveBoard = applyMovements initBoard fourMove
-
-startingCastling (1,1) = Place (Just (Piece Rook Black))
-startingCastling (1,5) = Place (Just (Piece King Black))
-startingCastling (1,8) = Place (Just (Piece Rook Black))
-startingCastling (3,7) = Place (Just (Piece Queen Black))
-startingCastling (8,1) = Place (Just (Piece Rook White))
-startingCastling (8,5) = Place (Just (Piece King White))
-startingCastling (8,8) = Place (Just (Piece Rook White))
-startingCastling (_,_) = Place Nothing
-initBoardCastling = matrix 8 8 startingCastling
-moveCastling =
-  [Movement (1,8) (2,8) (Piece Rook Black) [],
-   Movement (1,1) (1,3) (Piece Rook Black) [],
-   Movement (8,5) (7,4) (Piece King White) [],
-   Movement (1,3) (1,1) (Piece Rook Black) [],
-   Movement (2,8) (1,8) (Piece Rook Black) [],
-   Movement (7,4) (8,5) (Piece King White) []]
-boardCastling = applyMovements initBoardCastling moveCastling
-
 spec :: Spec
 spec = context "Chess Test" gprTest
 
 gprTest :: Spec
 gprTest = do
   it "4 Move CheckMate" $ do
-    --putStrLn "\n"
-    --putStrLn (printableMatrix fourMoveBoard [] [] [] [] [] [])
+    let moves = [Movement (7,5) (5,5) (Piece Pawn White) [PawnDoubleMove],
+                    Movement (2,5) (4,5) (Piece Pawn Black) [PawnDoubleMove],
+                    Movement (8,6) (5,3) (Piece Bishop White) [],
+                    Movement (1,2) (3,3) (Piece Knight Black) [],
+                    Movement (8,4) (4,8) (Piece Queen White) [],
+                    Movement (1,7) (3,6) (Piece Knight Black) [],
+                    Movement (4,8) (2,6) (Piece Queen White) [Attack]]
+        board = applyMovements initBoard moves
     
-    isCheck fourMoveBoard White [] `shouldBe` False
-    isCheckMate fourMoveBoard White [] `shouldBe` False
-    isCheck fourMoveBoard Black [] `shouldBe` True
-    isCheckMate fourMoveBoard Black [] `shouldBe` True
+    isCheck board White moves `shouldBe` False
+    isCheckMate board White moves `shouldBe` False
+    isCheck board Black moves `shouldBe` True
+    isCheckMate board Black moves `shouldBe` True
   
   it "Castling" $ do
-    --putStrLn "\n"
-    --putStrLn (printableMatrix initBoardCastling [] [] [] [] [] [])
-    --putStrLn "\n"
-    --putStrLn (show (map info (getMoves boardCastling (1,5) moveCastling)))
-    --putStrLn (show (map target (getMoves boardCastling (1,5) moveCastling)))
-    --putStrLn (show (map info (getMoves boardCastling (8,5) moveCastling)))
-    --putStrLn (show (map target (getMoves boardCastling (8,5) moveCastling)))
-    
-    all (==False) (map isCastling (getMoves boardCastling (1,5) moveCastling)) `shouldBe` True
-    all (==False) (map isCastling (getMoves boardCastling (8,5) moveCastling)) `shouldBe` True
+    let starting (1,1) = Place (Just (Piece Rook Black))
+        starting (1,5) = Place (Just (Piece King Black))
+        starting (1,8) = Place (Just (Piece Rook Black))
+        starting (3,7) = Place (Just (Piece Queen Black))
+        starting (8,1) = Place (Just (Piece Rook White))
+        starting (8,5) = Place (Just (Piece King White))
+        starting (8,8) = Place (Just (Piece Rook White))
+        starting (_,_) = Place Nothing
+        startingBoard = matrix 8 8 starting
+        moves = [Movement (1,8) (2,8) (Piece Rook Black) [],
+                 Movement (1,1) (1,3) (Piece Rook Black) [],
+                 Movement (8,5) (7,4) (Piece King White) [],
+                 Movement (1,3) (1,1) (Piece Rook Black) [],
+                 Movement (2,8) (1,8) (Piece Rook Black) [],
+                 Movement (7,4) (8,5) (Piece King White) []]
+        board = applyMovements startingBoard moves
+  
+    all (==False) (map isCastling (getMoves board (1,5) moves)) `shouldBe` True
+    all (==False) (map isCastling (getMoves board (8,5) moves)) `shouldBe` True
     
     let c1 = Movement (1,5) (1,3) (Piece King Black) [Castling]
         c2 = Movement (1,5) (1,7) (Piece King Black) [Castling]
         c3 = Movement (8,5) (8,3) (Piece King White) [Castling]
-    filter isCastling (getMoves boardCastling (1,5) []) `shouldBe` [c1,c2]
-    filter isCastling (getMoves boardCastling (8,5) []) `shouldBe` [c3]
+    filter isCastling (getMoves board (1,5) []) `shouldBe` [c1,c2]
+    filter isCastling (getMoves board (8,5) []) `shouldBe` [c3]
     
-    let castlingMove = head (filter isCastling (getMoves boardCastling (1,5) []))
-        castl = move boardCastling castlingMove
+    let castlingMove = head (filter isCastling (getMoves board (1,5) []))
+        castl = move board castlingMove
         undo = undoMovement castl castlingMove
     
-    undo `shouldBe` boardCastling
+    undo `shouldBe` board
+  
+  it "En Passant" $ do
+    let moves1 = [Movement (7,5) (5,5) (Piece Pawn White) [PawnDoubleMove],
+                  Movement (5,5) (4,5) (Piece Pawn White) [],
+                  Movement (2,2) (4,2) (Piece Pawn Black) [PawnDoubleMove]]
+        moves2 = moves1 ++ [Movement (2,4) (4,4) (Piece Pawn Black) [PawnDoubleMove]]
+        history1 = reverse moves1
+        history2 = reverse moves2
+        board1 = applyMovements initBoard moves1
+        board2 = applyMovements initBoard moves2
+    
+    let attacks = getAttacks board2 (4,5) history2
+    
+    null (getAttacks board1 (4,5) history1) `shouldBe` True
+    attacks `shouldBe` [Movement (4,5) (3,4) (Piece Pawn White) [EnPassant,Attack]]
+    
+    let enPassant = head attacks
+        board3 = attack board2 enPassant
+        history3 = enPassant : history2
+        undo = foldl undoMovement board3 history3
+    
+    undo `shouldBe` initBoard

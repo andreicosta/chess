@@ -140,15 +140,16 @@ allAttacks m pos@(i,j) piece h = filter (checkAttack m piece) allBoardAttacks
     allBoardAttacks = normalAttacks ++ enPassantAttacks
 
 enPassant :: Pos -> Piece -> History -> [Pos]
-enPassant (i,_) piece history = [(x, y) | cond]
+enPassant (i,y_) piece history = [(x,y) | cond]
   where
     x = if i == 5 then 6 else 3
     (_,y) = target (head history)
 
-    cond = isPawn && inPlace && enemyPawnDoubleMove
+    cond = isPawn && inPlace && enemyPawnDoubleMove && wasNear
     isPawn = typ piece == Pawn
     inPlace = (i == 5 && player piece == Black) || (i == 4 && player piece == White)
     enemyPawnDoubleMove = lastWasPawnDoubleMove history
+    wasNear = abs (y-y_) == 1
 
 getMovements :: (Board -> Pos -> Piece -> History -> [Movement]) -> Board -> Pos -> History -> [Movement]
 getMovements f m pos@(x,y) h = if isNothing (piece place) then [] else filter_ mvs
