@@ -10,7 +10,8 @@ import System.Random
 import Actions
 import Init
 import Player.Moderate
-import Player.Offensive
+--import Player.Offensive
+import Player.Thinker
 import Structure
 import Util
 
@@ -37,7 +38,7 @@ exit = do
 
 loop :: Board -> Player -> History -> IO ()
 loop m p history = do
-  putStrLn ("loop, player " ++ show p)
+  putStrLn ("loop, player " ++ show p ++ " " ++ (if p == Structure.White then "Thinker" else "Moderate"))
   putStrLn "commands: q ENTER back"
   
   unless
@@ -52,14 +53,15 @@ loop m p history = do
   g <- newStdGen
   
   let backHistory = loop (undoMovement m (head history)) (changePlayer p) (tail history)
-      alg = if p == Structure.White then Player.Offensive.whichMove else Player.Moderate.whichMove
+      alg = if p == Structure.White then Player.Thinker.whichMove else Player.Moderate.whichMove
       playerMovement = alg m p history g
       moveOrAttack = if isAttack playerMovement then attack m playerMovement else move m playerMovement
   
   print playerMovement
 
-  l <- getLine
-
+  --l <- getLine
+  let l = ""
+  
   putStrLn ("loop: " ++ l)
 
   case l of

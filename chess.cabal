@@ -29,6 +29,7 @@ library
                        Player.Common
                        Player.Moderate
                        Player.Offensive
+                       Player.Thinker
 
 executable chess
   hs-source-dirs:      src/CLI/

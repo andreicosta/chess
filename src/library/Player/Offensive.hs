@@ -12,7 +12,7 @@ import Structure
 import Util
 
 whichMove :: RandomGen t => Board -> Player -> History -> t -> Movement
-whichMove b p h g = if null choosenList then err else choosenList !! (rand choosenList)
+whichMove b p h g = if null choosenList then err else choosenList !! rand choosenList
   where
     err = error ("player " ++ show p ++ " no moves")
     rand list = fst (randomR (0::Int, (length list - 1)::Int) g)

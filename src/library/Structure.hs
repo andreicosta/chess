@@ -29,7 +29,7 @@ isEnPassant :: Movement -> Bool
 isEnPassant m = EnPassant `elem` info m
 
 isAttack :: Movement -> Bool
-isAttack m = not (null (filter select (info m)))
+isAttack m = any select (info m)
   where
     select (Attack _) = True
     select _ = False

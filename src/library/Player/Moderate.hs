@@ -13,7 +13,7 @@ import Structure
 import Util
 
 whichMove :: RandomGen t => Board -> Player -> History -> t -> Movement
-whichMove b p h g = if null choosenList then err else choosenList !! (rand choosenList)
+whichMove b p h g = if null choosenList then err else choosenList !! rand choosenList
   where
     err = error ("player " ++ show p ++ " no moves")
     rand list = fst (randomR (0::Int, (length list - 1)::Int) g)
@@ -29,7 +29,7 @@ whichMove b p h g = if null choosenList then err else choosenList !! (rand choos
       mapMaybe (\(mv,emv) -> if null emv then Nothing else Just (mv,maximumBy (\emv1 emv2 -> compare (getBV (moveOrAttack b mv) emv1 p) (getBV (moveOrAttack b mv) emv2 p)) emv)) enemyMovements
     
     myMoves = sortBy (\(mv1,emv1) (mv2,emv2) -> compare (getBV (moveOrAttack b mv1) emv1 p) (getBV (moveOrAttack b mv2) emv2 p)) chooseBestEnemyMove
-    myBestMoves = last (groupBy (\(mv1,emv1) (mv2,emv2) -> (getBV (moveOrAttack b mv1) emv1 p) == (getBV (moveOrAttack b mv2) emv2 p)) myMoves)
+    myBestMoves = last (groupBy (\(mv1,emv1) (mv2,emv2) -> getBV (moveOrAttack b mv1) emv1 p == getBV (moveOrAttack b mv2) emv2 p) myMoves)
     
     matrixMovements = matrix 8 8 (\pos -> if isPiece b pos && not (isOpposite b p pos) then getMoves b pos h ++ getAttacks b pos h else [])
     allMovements = concat (toList matrixMovements)
