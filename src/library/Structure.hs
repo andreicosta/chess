@@ -8,7 +8,7 @@ type Rank = Int
 
 type Pos = (Rank,File)
 
-data Info = PawnDoubleMove | EnPassant | Attack | Castling deriving(Eq,Show)
+data Info = PawnDoubleMove | EnPassant | Attack Piece | Castling deriving(Eq,Show)
 
 data Movement = Movement
   { source        :: Pos
@@ -29,7 +29,18 @@ isEnPassant :: Movement -> Bool
 isEnPassant m = EnPassant `elem` info m
 
 isAttack :: Movement -> Bool
-isAttack m = Attack `elem` info m
+isAttack m = not (null (filter select (info m)))
+  where
+    select (Attack _) = True
+    select _ = False
+
+getAttacked :: Movement -> Piece
+getAttacked m = if null filt then error "it is not a attack" else piece
+  where
+    (Attack piece:_) = filt
+    filt = filter select (info m)
+    select (Attack _) = True
+    select _ = False
 
 lastWasPawnDoubleMove :: History -> Bool
 lastWasPawnDoubleMove (h:_) = PawnDoubleMove `elem` info h

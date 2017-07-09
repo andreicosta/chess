@@ -20,7 +20,7 @@ import Structure
 pawnPromotion :: Board -> Type -> Pos -> Board
 pawnPromotion m t pos = setElem (Place (Just updatePiece)) pos m
   where
-    updatePiece = (getPiece m pos) {typ = t}
+    updatePiece = (getPiece "pp" m pos) {typ = t}
 
 listPawnPromotion :: Board -> [Pos]
 listPawnPromotion m = concat (toList searchOnMatrix)
@@ -35,17 +35,17 @@ listPawnPromotion m = concat (toList searchOnMatrix)
 changePlayer :: Player -> Player
 changePlayer p = if p == White then Black else White
 
-getPiece :: Board -> Pos -> Piece
-getPiece m (x,y) = fromMaybe (error "error: getPiece") (piece (getElem x y m))
+getPiece :: String -> Board -> Pos -> Piece
+getPiece str m (x,y) = fromMaybe (error (str ++ " error: getPiece "++ show (x,y))) (piece (getElem x y m))
 
 isPiece :: Board -> Pos -> Bool
 isPiece m (x,y) = isJust (piece (getElem x y m))
 
 isOpposite :: Board -> Player -> Pos -> Bool
-isOpposite m p pos = player (getPiece m pos) /= p
+isOpposite m p pos = player (getPiece "isO" m pos) /= p
 
 isType :: Board -> Type -> Pos -> Bool
-isType m t pos = typ (getPiece m pos) == t
+isType m t pos = typ (getPiece "isT" m pos) == t
 
 setLeft :: Int -> Int
 setLeft y = if y == 1 then 1 else y-1

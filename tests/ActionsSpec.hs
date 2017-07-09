@@ -7,6 +7,7 @@ import Actions
 import Init
 import Simulation
 import Structure
+import Util
 
 initBoard = matrix 8 8 starting
 
@@ -22,7 +23,7 @@ gprTest = do
                  Movement (1,2) (3,3) (Piece Knight Black) [],
                  Movement (8,4) (4,8) (Piece Queen White) [],
                  Movement (1,7) (3,6) (Piece Knight Black) [],
-                 Movement (4,8) (2,6) (Piece Queen White) [Attack]]
+                 Movement (4,8) (2,6) (Piece Queen White) [Attack undefined]]
         board = applyMovements initBoard moves
     
     isCheck board White moves `shouldBe` False
@@ -76,7 +77,7 @@ gprTest = do
     let attacks = getAttacks board2 (4,5) history2
     
     null (getAttacks board1 (4,5) history1) `shouldBe` True
-    attacks `shouldBe` [Movement (4,5) (3,4) (Piece Pawn White) [EnPassant,Attack]]
+    attacks `shouldBe` [Movement (4,5) (3,4) (Piece Pawn White) [EnPassant,Attack (Piece Pawn Black)]]
     
     let enPassant = head attacks
         board3 = attack board2 enPassant

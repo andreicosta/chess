@@ -135,12 +135,12 @@ pawnDoubleStepMove (i,_) piece = if cond then addDoubleStep else []
 allAttacks :: Board -> Pos -> Piece -> History -> [Movement]
 allAttacks m pos@(i,j) piece h = filter (checkAttack m piece) allBoardAttacks
   where
-    normalAttacks = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (Movement pos (x+i,y+j) piece [Attack]) else Nothing) (attacks piece)
-    enPassantAttacks = map (\new -> Movement pos new piece [EnPassant,Attack]) (enPassant pos piece h)
+    normalAttacks = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (Movement pos (x+i,y+j) piece [Attack (getPiece "normalAttack" m (x+i,y+j))]) else Nothing) (attacks piece)
+    enPassantAttacks = map (\(new,new_) -> Movement pos new piece [EnPassant,Attack (getPiece "enpas" m new_)]) (enPassant pos piece h)
     allBoardAttacks = normalAttacks ++ enPassantAttacks
 
-enPassant :: Pos -> Piece -> History -> [Pos]
-enPassant (i,y_) piece history = [(x,y) | cond]
+enPassant :: Pos -> Piece -> History -> [(Pos,Pos)]
+enPassant (i,y_) piece history = [((x,y),(i,y)) | cond]
   where
     x = if i == 5 then 6 else 3
     (_,y) = target (head history)
@@ -171,9 +171,10 @@ undoMovement :: Board -> Movement -> Board
 undoMovement m movement
   | isEnPassant movement = createPawn
   | isCastling movement = restoreRook
+  | isAttack movement = undoAttack
   | otherwise = undoMove
   where
-    piece = getPiece m (target movement)
+    piece = getPiece "undo" m (target movement)
     
     backSrc = source movement
     backTgt = target movement
@@ -188,6 +189,9 @@ undoMovement m movement
     restoreRook = move undoMove (Movement (x,aj) (x,nj) (Piece Rook (player piece)) [])
 
     undoMove = move m (Movement backTgt backSrc undefined [])
+    
+    attacked = getAttacked movement
+    undoAttack = setElem (Place (Just attacked)) backTgt undoMove
 
 ------------ Second Part
 ---- Check
