@@ -13,7 +13,7 @@ spec = context "Chess Test" gprTest
 
 gprTest :: Spec
 gprTest =
-  it "Print Initial Board" $ do
+  it "print initial board" $ do
     let c1 = "1"
         c2 = "2"
         c3 = "3"
