@@ -1,6 +1,6 @@
 module Main where
 
-import Control.Monad (when)
+import Control.Monad (unless,when)
 
 import Data.Maybe
 import Data.Matrix
@@ -40,8 +40,8 @@ loop m p place@(x,y) history = do
   putStrLn ("loop, player " ++ show p ++ " place " ++ show place)
   putStrLn "commands: q ENTER w s a d back"
   
-  when
-    (not (null (listPawnPromotion m)))
+  unless
+    (null (listPawnPromotion m))
     (updatePawnLoop m p (head (listPawnPromotion m)) place history)
   
   let (Just getPiece) = piece (getElem x y m)
@@ -93,7 +93,7 @@ loop m p place@(x,y) history = do
 updatePawnLoop :: Board -> Player -> (Rank, File) -> Pos -> History -> IO ()
 updatePawnLoop board p pos place history = do
   putStrLn ("updatePawnLoop, replace Pawn on " ++ show pos)
-  putStrLn ("commands: Queen Rook Bishop Knight")
+  putStrLn "commands: Queen Rook Bishop Knight"
   
   l <- getLine
 

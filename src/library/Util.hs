@@ -25,7 +25,7 @@ pawnPromotion m t pos = setElem (Place (Just updatePiece)) pos m
 listPawnPromotion :: Board -> [Pos]
 listPawnPromotion m = concat (toList searchOnMatrix)
   where
-    searchOnMatrix = matrix 8 8 $ \pos -> if isPawnOnFinal pos then [pos] else []
+    searchOnMatrix = matrix 8 8 $ \pos -> [pos | isPawnOnFinal pos]
     
     isPawnOnFinal pos@(x,_) =
       isPiece m pos &&

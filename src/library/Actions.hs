@@ -209,8 +209,11 @@ isCheck m p h = if null kingList then error "error: isCheck" else not (null thre
 
 -- | Returns `True` if player `p` is under a checkmate
 isCheckMate :: Board -> Player -> History -> Bool
-isCheckMate m p h = all (==True) (concat (toList checkFreeMovements))
+isCheckMate m p h = isACheck && anyMoveIsACheck
   where
+    isACheck = isCheck m p h
+    anyMoveIsACheck = all (==True) (concat (toList checkFreeMovements))
+    
     checkFreeMovements = matrix 8 8 verifyCheck
     verifyCheck pos = if isPiece m pos && not (isOpposite m p pos) then map moveIsCheck (movements pos) else []
     movements pos = getAttacks m pos h ++ getMoves m pos h
