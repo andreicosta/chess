@@ -26,6 +26,7 @@ library
                        Simulation
                        Structure
                        Util
+                       Player.Common
                        Player.Moderate
                        Player.Offensive
 
