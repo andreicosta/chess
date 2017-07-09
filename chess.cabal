@@ -43,6 +43,18 @@ executable chess
   default-language:    Haskell2010
   other-modules:       Main
 
+executable chess-helper
+  hs-source-dirs:      src/CLI/
+  main-is:             Helper.hs
+  ghc-options:         -Wall -fno-warn-name-shadowing
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -O
+  build-depends:       base,
+                       chess,
+                       matrix >= 0.3,
+                       ansi-terminal >= 0.6
+  default-language:    Haskell2010
+  other-modules:       Helper
+
 executable chess-computer
   hs-source-dirs:      src/CLI/
   main-is:             ComputerGame.hs

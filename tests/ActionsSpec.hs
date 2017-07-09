@@ -11,22 +11,6 @@ import Util
 
 initBoard = matrix 8 8 starting
 
-applyMovementsTest board _ [] = board
-applyMovementsTest board h (m:ms) =
-  if testFindMoves then nextStep else error "did not found movement"
-  where
-    applied =
-      if isAttack m
-        then attack board m
-        else move board m
-    
-    nextStep = applyMovementsTest applied (m:h) ms
-    
-    generatedMovements =
-      getMoves board (source m) h ++
-      getAttacks board (source m) h
-    testFindMoves = m `elem` generatedMovements
-
 spec :: Spec
 spec = context "Chess Test" gprTest
 

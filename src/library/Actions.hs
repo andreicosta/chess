@@ -117,11 +117,12 @@ getCastlingMoves m (i,j_) piece history =
     kingNeverMoved = all (\(Movement _ _ p _) -> p /= piece) history
     rookNeverMoved j = all (\(Movement src _ _ _) -> src /= (i,j)) history
     noCheck = not (isCheck m playr history)
-    freePath j = all (\p -> not (isPiece m (i,p))) (kingPath j)
+    freePath j = all (\p -> not (isPiece m (i,p))) (rookPath j)
     noPassByAttackedSquare j = all (\p -> not (isCheck (stepMove p) playr [])) (kingPath j)
     
     stepMove p = move m (Movement (i,j_) (i,p) undefined [])
     kingPath j = if j == 1 then [3,4] else [6,7]
+    rookPath j = if j == 1 then [2,3,4] else [6,7]
 
 pawnDoubleStepMove :: Pos -> Piece -> [Pos]
 pawnDoubleStepMove (i,_) piece = if cond then addDoubleStep else []
