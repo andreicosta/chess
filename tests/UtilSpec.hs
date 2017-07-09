@@ -40,9 +40,9 @@ gprTest = do
     changePlayer Black `shouldBe` White
   
   it "getPiece" $ do
-    getPiece initBoard (1,1) `shouldBe` (Piece Rook Black)
-    getPiece initBoard (8,8) `shouldBe` (Piece Rook White)
-    getPiece initBoard (2,1) `shouldBe` (Piece Pawn Black)
+    getPiece initBoard (1,1) `shouldBe` Piece Rook Black
+    getPiece initBoard (8,8) `shouldBe` Piece Rook White
+    getPiece initBoard (2,1) `shouldBe` Piece Pawn Black
   
   it "isPiece" $ do
     isPiece initBoard (1,1) `shouldBe` True

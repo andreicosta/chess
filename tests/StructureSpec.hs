@@ -12,7 +12,7 @@ spec :: Spec
 spec = context "Chess Test" gprTest
 
 gprTest :: Spec
-gprTest = do
+gprTest =
   it "Print Initial Board" $ do
     let c1 = "1"
         c2 = "2"
