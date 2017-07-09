@@ -15,13 +15,15 @@ spec = context "Util Functions Test" gprTest
 
 gprTest :: Spec
 gprTest = do
-  it "postMoveEffects" $ do
+  it "pawn promotion" $ do
     let board2 = attack initBoard (Movement (2,1) (8,1) (Piece Pawn Black) [])
         board3 = attack initBoard (Movement (7,5) (1,3) (Piece Pawn White) [])
     
-    postMoveEffects initBoard `shouldBe` initBoard
-    postMoveEffects board2 `shouldNotBe` board2
-    postMoveEffects board3 `shouldNotBe` board3
+    listPawnPromotion initBoard `shouldBe` []
+    listPawnPromotion board2 `shouldBe` [(8,1)]
+    listPawnPromotion board3 `shouldBe` [(1,3)]
+    pawnPromotion board2 Queen (8,1) `shouldNotBe` board2
+    pawnPromotion board3 Rook (1,3) `shouldNotBe` board3
   
   it "sets" $ do
     setLeft 1 `shouldBe` 1
@@ -33,7 +35,7 @@ gprTest = do
     setDown 1 `shouldBe` 2
     setDown 8 `shouldBe` 8
   
-  it "changePlayer" $ do
+  it "change player" $ do
     changePlayer White `shouldBe` Black
     changePlayer Black `shouldBe` White
   

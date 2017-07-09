@@ -36,12 +36,15 @@ exit = do
   exitSuccess
 
 loop :: Board -> Player -> Pos -> History -> IO ()
-loop oldBoard p place@(x,y) history = do
+loop m p place@(x,y) history = do
   putStrLn ("loop, player " ++ show p ++ " place " ++ show place)
   putStrLn "commands: q ENTER w s a d back"
   
-  let m = postMoveEffects oldBoard
-      (Just getPiece) = piece (getElem x y m)
+  when
+    (not (null (listPawnPromotion m)))
+    (updatePawnLoop m p (head (listPawnPromotion m)) place history)
+  
+  let (Just getPiece) = piece (getElem x y m)
       isTurn = isJust (piece (getElem x y m)) && player getPiece == p
 
       movementsMoves = getMoves m place history
@@ -86,6 +89,22 @@ loop oldBoard p place@(x,y) history = do
     _ -> loop m p place history
   
   return ()
+
+updatePawnLoop :: Board -> Player -> (Rank, File) -> Pos -> History -> IO ()
+updatePawnLoop board p pos place history = do
+  putStrLn ("updatePawnLoop, replace Pawn on " ++ show pos)
+  putStrLn ("commands: Queen Rook Bishop Knight")
+  
+  l <- getLine
+
+  putStrLn ("updatePawnLoop: " ++ l)
+
+  case l of
+        "Queen" -> loop (pawnPromotion board Queen pos) p place history
+        "Rook" -> loop (pawnPromotion board Rook pos) p place history
+        "Bishop" -> loop (pawnPromotion board Bishop pos) p place history
+        "Knight" -> loop (pawnPromotion board Knight pos) p place history
+        _ -> updatePawnLoop board p pos place history
 
 selectPieceLoop :: Board -> Player -> Pos -> [Movement] -> History -> IO ()
 selectPieceLoop m p piecePlace moves history = do

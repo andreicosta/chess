@@ -1,5 +1,6 @@
 module Util
-  ( postMoveEffects
+  ( pawnPromotion
+  , listPawnPromotion
   , changePlayer
   , getPiece
   , isPiece
@@ -16,19 +17,20 @@ import Data.Matrix
 
 import Structure
 
-postMoveEffects :: Board -> Board
-postMoveEffects = pawnPromotion
-
--- for while it only promotes to queen
-pawnPromotion :: Board -> Board
-pawnPromotion m = matrix 8 8 $ \pos@(x,y) -> if isPawnOnFinal pos then Place (Just (updatePiece pos)) else getElem x y m
+pawnPromotion :: Board -> Type -> Pos -> Board
+pawnPromotion m t pos = setElem (Place (Just updatePiece)) pos m
   where
+    updatePiece = (getPiece m pos) {typ = t}
+
+listPawnPromotion :: Board -> [Pos]
+listPawnPromotion m = concat (toList searchOnMatrix)
+  where
+    searchOnMatrix = matrix 8 8 $ \pos -> if isPawnOnFinal pos then [pos] else []
+    
     isPawnOnFinal pos@(x,_) =
       isPiece m pos &&
       (x == 1 && isType m Pawn pos && isOpposite m Black pos ||
        x == 8 && isType m Pawn pos && isOpposite m White pos)
-    
-    updatePiece pos = (getPiece m pos) {typ = Queen}
 
 changePlayer :: Player -> Player
 changePlayer p = if p == White then Black else White
