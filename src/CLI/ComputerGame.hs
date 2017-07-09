@@ -9,7 +9,8 @@ import System.Random
 
 import Actions
 import Init
-import Player
+import Player.Moderate
+import Player.Offensive
 import Structure
 import Util
 
@@ -46,12 +47,13 @@ loop m p history = do
   when (isCheck m p history) (putStrLn "Check!")
   when (isCheckMate m p history) (putStrLn "Checkmate!")
   putStrLn (printableMatrix m colorPlace [] colorMove [] colorAttack [])
-  --when (isCheckMate m p history) exit
+  when (isCheckMate m p history) exit
 
   g <- newStdGen
   
   let backHistory = loop (undoMovement m (head history)) (changePlayer p) (tail history)
-      playerMovement = whichMove m p history g
+      alg = if p == Structure.White then Player.Offensive.whichMove else Player.Moderate.whichMove
+      playerMovement = alg m p history g
       moveOrAttack = if isAttack playerMovement then attack m playerMovement else move m playerMovement
   
   print playerMovement
