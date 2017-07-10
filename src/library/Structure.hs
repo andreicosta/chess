@@ -17,10 +17,10 @@ data Movement = Movement
   , info          :: [Info]
   } deriving(Eq,Read,Show)
 
---instance Show Movement where
---  show (Movement s t _ i) =
---    show s ++ " -> " ++ show t ++
---    concatMap (\f -> " " ++ show f) i
+show_ :: Movement -> String
+show_ (Movement s t _ i) =
+  show s ++ " -> " ++ show t ++
+  concatMap (\f -> " " ++ show f) i
 
 isCastling :: Movement -> Bool
 isCastling m = Castling `elem` info m

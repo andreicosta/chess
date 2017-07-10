@@ -108,7 +108,7 @@ updatePawnLoop board p pos place history = do
 
 selectPieceLoop :: Board -> Player -> Pos -> [Movement] -> History -> IO ()
 selectPieceLoop m p piecePlace moves history = do
-  putStrLn ("selectPieceLoop, player " ++ show p ++ " place " ++ show piecePlace ++ " movements " ++ show moves)
+  putStrLn ("selectPieceLoop, player " ++ show p ++ " place " ++ show piecePlace ++ " movements " ++ concatMap show_ moves)
   putStrLn "commands: q ESC ENTER w s"
   
   let actual = head moves

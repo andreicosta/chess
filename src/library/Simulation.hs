@@ -23,10 +23,7 @@ applyMovementsTest board _ [] = board
 applyMovementsTest board h (m:ms) =
   if testFindMoves then nextStep else error "did not found movement"
   where
-    applied =
-      if isAttack m
-        then attack board m
-        else move board m
+    applied = applyMovements board [m]
     
     nextStep = applyMovementsTest applied (m:h) ms
     
