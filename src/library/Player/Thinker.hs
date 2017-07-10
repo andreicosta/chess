@@ -21,7 +21,7 @@ whichMoves b p h = choosenList
     winGame = filter (\mv -> isCheckMate (moveOrAttack b mv) (changePlayer p) h) mvs
     mvs = allMovements b p h
     
-    treeTest = fullTree p 1 0 b h
+    treeTest = fullTree p 4 0 b h
     prefs = searchMovement treeTest
     thinkedMoves = zip mvs prefs
     orderedMoves = sortBy (\(_,v1) (_,v2) -> compare v1 v2) thinkedMoves

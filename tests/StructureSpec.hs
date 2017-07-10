@@ -9,7 +9,7 @@ import Structure
 initBoard = matrix 8 8 starting
 
 spec :: Spec
-spec = context "Chess Test" gprTest
+spec = context "Board Test" gprTest
 
 gprTest :: Spec
 gprTest =

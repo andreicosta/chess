@@ -1,0 +1,3 @@
+[
+Movement {source = (7,5), target = (5,5), movementPiece = Piece {typ = Pawn, player = White}, info = [PawnDoubleMove]}
+]

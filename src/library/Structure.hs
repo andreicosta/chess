@@ -8,19 +8,19 @@ type Rank = Int
 
 type Pos = (Rank,File)
 
-data Info = PawnDoubleMove | EnPassant | Attack Piece | Castling deriving(Eq,Show)
+data Info = PawnDoubleMove | EnPassant | Attack Piece | Castling deriving(Eq,Read,Show)
 
 data Movement = Movement
   { source        :: Pos
   , target        :: Pos
   , movementPiece :: Piece
   , info          :: [Info]
-  } deriving(Eq)
+  } deriving(Eq,Read,Show)
 
-instance Show Movement where
-  show (Movement s t _ i) =
-    show s ++ " -> " ++ show t ++
-    concatMap (\f -> " " ++ show f) i
+--instance Show Movement where
+--  show (Movement s t _ i) =
+--    show s ++ " -> " ++ show t ++
+--    concatMap (\f -> " " ++ show f) i
 
 isCastling :: Movement -> Bool
 isCastling m = Castling `elem` info m
@@ -55,39 +55,37 @@ addHistory h m = m : h
 
 type History = [Movement]
 
-data Player = White | Black deriving(Eq)
+data Player = White | Black deriving(Eq,Read,Show)
 
-instance Show Player where
-  show White = colorCyan ++ "w" ++ colorWhite
-  show Black = colorVividBlack ++ "b" ++ colorWhite
-
-data Type = Pawn | Queen | King | Rook | Bishop | Knight deriving(Eq)
+data Type = Pawn | Queen | King | Rook | Bishop | Knight deriving(Eq,Read,Show)
 
 allTypes :: [Type]
 allTypes = [Pawn,Queen,King,Rook,Bishop,Knight]
 
-instance Show Type where
-  show Pawn = "P"
-  show Rook = "R"
-  show Bishop = "B"
-  show Queen = "Q"
-  show King = "K"
-  show Knight = "N"
-
 data Piece = Piece
   { typ :: Type
   , player :: Player
-  } deriving(Eq)
-
-instance Show Piece where
-  show (Piece t p) = show t ++ show p
+  } deriving(Eq,Read,Show)
 
 data Place = Place
   { piece :: Maybe Piece
   } deriving(Eq)
 
 instance Show Place where
-  show (Place (Just piece)) = show piece
+  show (Place (Just piece)) = show_ piece
+    where
+      show_ (Piece t p) = showT_ t ++ showP_ p
+      
+      showT_ Pawn = "P"
+      showT_ Rook = "R"
+      showT_ Bishop = "B"
+      showT_ Queen = "Q"
+      showT_ King = "K"
+      showT_ Knight = "N"
+      
+      showP_ White = colorCyan ++ "w" ++ colorWhite
+      showP_ Black = colorVividBlack ++ "b" ++ colorWhite
+      
   show (Place Nothing) = "  "
 
 type Board = Matrix Place
