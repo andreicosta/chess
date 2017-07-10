@@ -33,7 +33,7 @@ main = do
       history = reverse moves
       playerMovements = Player.Thinker.whichMoves board p history
 
-  putStrLn ((concatMap (\m -> show m ++ "\n")) playerMovements)
+  putStrLn (concatMap (\m -> show m ++ "\n") playerMovements)
 
   ANSI.setSGR [ANSI.Reset]
   putStrLn "\n"

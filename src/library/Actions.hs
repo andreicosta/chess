@@ -137,19 +137,22 @@ allAttacks :: Board -> Pos -> Piece -> History -> [Movement]
 allAttacks m pos@(i,j) piece h = filter (checkAttack m piece) allBoardAttacks
   where
     normalAttacks = mapMaybe (\(x,y) -> if x+i `elem` [1..8] && y+j `elem` [1..8] then Just (Movement pos (x+i,y+j) piece [Attack (getPiece "normalAttack" m (x+i,y+j))]) else Nothing) (attacks piece)
-    enPassantAttacks = map (\(new,new_) -> Movement pos new piece [EnPassant,Attack (getPiece "enpas" m new_)]) (enPassant pos piece h)
+    enPassantAttacks = map (\(new,new_) -> Movement pos new piece [EnPassant,Attack (getPiece (errMsg new new_) m new_)]) (enPassant pos piece h)
     allBoardAttacks = normalAttacks ++ enPassantAttacks
+    
+    errMsg n n_ = printableMatrix m [] [] [] [] [] [] ++ "\n" ++ show piece ++ "," ++ show pos ++ "," ++ show n ++ "," ++ show n_
 
 enPassant :: Pos -> Piece -> History -> [(Pos,Pos)]
-enPassant (i,y_) piece history = [((x,y),(i,y)) | cond]
+enPassant (i,y_) piece_ history = [((x,y),(i,y)) | cond]
   where
     x = if i == 5 then 6 else 3
     (_,y) = target (head history)
 
-    cond = isPawn && inPlace && enemyPawnDoubleMove && wasNear
-    isPawn = typ piece == Pawn
-    inPlace = (i == 5 && player piece == Black) || (i == 4 && player piece == White)
-    enemyPawnDoubleMove = lastWasPawnDoubleMove history
+    cond = isPawn && inPlace && isEnemy && pawnDoubleMove && wasNear
+    isPawn = typ piece_ == Pawn
+    inPlace = (i == 5 && player piece_ == Black) || (i == 4 && player piece_ == White)
+    pawnDoubleMove = lastWasPawnDoubleMove history
+    isEnemy = player (movementPiece (head history)) /= player piece_
     wasNear = abs (y-y_) == 1
 
 getMovements :: (Board -> Pos -> Piece -> History -> [Movement]) -> Board -> Pos -> History -> [Movement]
