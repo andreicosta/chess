@@ -5,7 +5,8 @@ import qualified System.Console.ANSI as ANSI
 import System.Exit
 
 import Init
-import Player.Thinker
+--import Player.Thinker
+import Player.Thinker2
 import Simulation
 import Structure
 
@@ -31,7 +32,8 @@ main = do
 
   let p = Black
       history = reverse moves
-      playerMovements = Player.Thinker.whichMoves board p history
+      --playerMovements = Player.Thinker.whichMoves board p history
+      playerMovements = Player.Thinker2.whichMoves board p history
 
   putStrLn (concatMap (\m -> show m ++ "\n") playerMovements)
 

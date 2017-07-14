@@ -30,6 +30,7 @@ library
                        Player.Moderate
                        Player.Offensive
                        Player.Thinker
+                       Player.Thinker2
 
 executable chess
   hs-source-dirs:      src/CLI/

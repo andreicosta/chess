@@ -15,6 +15,12 @@ value Rook = 5
 value Queen = 9
 value _ = 0
 
+head_ :: [[t]] -> [t]
+head_ l = if null l then [] else head l
+
+last_ :: [[t]] -> [t]
+last_ l = if null l then [] else last l
+
 getBoardValue :: Board -> Player -> Int
 getBoardValue b p = uncurry (-) (getSumPieces b p)
 
